@@ -22,5 +22,5 @@ dist/
 nbdist/
 .nb-gradle/
 
-### mac ###
-.Ds_store
+### mac system file ###
+.DS_Store
