@@ -1,0 +1,47 @@
+#  配置progId与clsid可参考以下内容：
+#
+#  1、Knight.OPC.Server.Demo
+#  progId: Knight.OPC.Server.Demo
+#  clsid: B57C679B-665D-4BB0-9848-C5F2C4A6A280
+#
+#  2、Kepware
+#  progId: Kepware.KEPServerEX.V6
+#  clsid: 7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729
+#
+#  3、Simulator
+#  progId: ICONICS.SimulatorOPCDA.2
+#  clsid: a879768a-7387-11d4-b0d8-009027242c59
+
+
+opc:
+  runServerId: [1]
+  servers:
+    - id: 1
+      host: 192.168.2.254
+      domain: 192.168.2.254
+      user: Administrator
+      password: GDTvm6.5
+      progId: Knight.OPC.Server.Demo
+      clsId: B57C679B-665D-4BB0-9848-C5F2C4A6A280
+      timeout: 5000
+      heartbeat: 3000
+
+    - id: 2
+      host: 192.168.2.254
+      domain: 192.168.2.254
+      user: Administrator
+      password: GDTvm6.5
+      progId: Kepware.KEPServerEX.V6
+      clsId: 7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729
+      timeout: 5000
+      heartbeat: 3000
+
+    - id: 3
+      host: 192.168.2.254
+      domain: 192.168.2.254
+      user: Administrator
+      password: GDTvm6.5
+      progId: ICONICS.SimulatorOPCDA.2
+      clsId: a879768a-7387-11d4-b0d8-009027242c59
+      timeout: 5000
+      heartbeat: 3000

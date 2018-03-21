@@ -1,0 +1,11 @@
+opc:
+  server:
+    host: 192.168.xxx.xxx
+    #domain:
+    username: user
+    password: GDTvm6.5
+    # kepware的CLSID
+    clsId: 7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729
+    #prgId:
+    # 采集间隔时间 ms
+    heartbeat: 1000

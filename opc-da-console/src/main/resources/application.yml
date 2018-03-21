@@ -1,0 +1,5 @@
+spring:
+  profiles:
+    # 切换开发/生产环境: dev/pro
+    active: dev
+

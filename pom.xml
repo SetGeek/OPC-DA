@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>cn.com.sgcc.gdt</groupId>
+	<artifactId>opc-da</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<modules>
+		<module>opc-da-console</module>
+		<module>opc-da-client</module>
+		<module>opc-core-dcom</module>
+		<module>opc-core-lib</module>
+	</modules>
+	<packaging>pom</packaging>
+
+	<name>opc-da</name>
+	<description>Demo project for Spring Boot</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<spring.version>2.0.0.RELEASE</spring.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>aliyun</id>
+			<url>http://maven.aliyun.com/nexus/content/groups/public</url>
+		</repository>
+
+		<!-- OPC-DA Repositories -->
+        <repository>
+            <id>utgard</id>
+            <name>utgard releases</name>
+            <url>http://repo.openscada.org/maven/releases/</url>
+        </repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.16.20</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.25</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>1.2.39</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.0.0.RELEASE</version>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

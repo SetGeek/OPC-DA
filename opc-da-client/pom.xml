@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>opc-da</artifactId>
+        <groupId>cn.com.sgcc.gdt</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>opc-da-client</artifactId>
+
+    <dependencies>
+        <!-- OPC DA Start-->
+        <!--<dependency>-->
+            <!--<groupId>org.jinterop</groupId>-->
+            <!--<artifactId>j-interop</artifactId>-->
+            <!--<version>2.0.4</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.openscada.utgard</groupId>-->
+            <!--<artifactId>org.openscada.opc.lib</artifactId>-->
+            <!--<version>1.1.0.v20130529</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.openscada.utgard</groupId>-->
+            <!--<artifactId>org.openscada.opc.dcom</artifactId>-->
+            <!--<version>1.1.0.v20130529</version>-->
+        <!--</dependency>-->
+        <!-- OPC DA End-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.kohsuke.jinterop</groupId>-->
+            <!--<artifactId>j-interop</artifactId>-->
+            <!--<version>2.0.5</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>cn.com.sgcc.gdt</groupId>
+            <artifactId>opc-core-dcom</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.com.sgcc.gdt</groupId>
+            <artifactId>opc-core-lib</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.39</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+    </dependencies>
+</project>
