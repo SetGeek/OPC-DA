@@ -1,36 +1,21 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.EnumString;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.Helper;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.OPCCommon;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCSERVERSTATUS;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCENUMSCOPE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcServerStatus;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcEnumScope;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 
 import java.net.UnknownHostException;
 
+/**
+ * OPC服务
+ * @author ck.yang
+ */
 public class OPCServer extends BaseCOMObject {
     public OPCServer(final IJIComObject opcServer) throws IllegalArgumentException, UnknownHostException, JIException {
         super(opcServer.queryInterface(Constants.IOPCServer_IID));
@@ -42,17 +27,31 @@ public class OPCServer extends BaseCOMObject {
      * @return the current server status
      * @throws JIException
      */
-    public OPCSERVERSTATUS getStatus() throws JIException {
+    public OpcServerStatus getStatus() throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(3);
 
-        callObject.addOutParamAsObject(new JIPointer(OPCSERVERSTATUS.getStruct()), JIFlags.FLAG_NULL);
+        callObject.addOutParamAsObject(new JIPointer(OpcServerStatus.getStruct()), JIFlags.FLAG_NULL);
 
         Object[] result = getCOMObject().call(callObject);
 
-        return OPCSERVERSTATUS.fromStruct((JIStruct) ((JIPointer) result[0]).getReferent());
+        return OpcServerStatus.fromStruct((JIStruct) ((JIPointer) result[0]).getReferent());
     }
 
+    /**
+     * 添加组
+     * @param name
+     * @param active 激活
+     * @param updateRate 更新频率
+     * @param clientHandle 客户端处理器
+     * @param timeBias 时间偏差
+     * @param percentDeadband 死区的百分比 FIXME 不理解
+     * @param localeID 本地id
+     * @return
+     * @throws JIException
+     * @throws IllegalArgumentException
+     * @throws UnknownHostException
+     */
     public OPCGroupStateMgt addGroup(final String name, final boolean active, final int updateRate, final int clientHandle, final Integer timeBias, final Float percentDeadband, final int localeID) throws JIException, IllegalArgumentException, UnknownHostException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(0);
@@ -74,6 +73,12 @@ public class OPCServer extends BaseCOMObject {
         return new OPCGroupStateMgt((IJIComObject) result[2]);
     }
 
+    /**
+     * 移除组
+     * @param serverHandle
+     * @param force
+     * @throws JIException
+     */
     public void removeGroup(final int serverHandle, final boolean force) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(4);
@@ -84,10 +89,24 @@ public class OPCServer extends BaseCOMObject {
         getCOMObject().call(callObject);
     }
 
+    /**
+     * 移除组
+     * @param group
+     * @param force
+     * @throws JIException
+     */
     public void removeGroup(final OPCGroupStateMgt group, final boolean force) throws JIException {
         removeGroup(group.getState().getServerHandle(), force);
     }
 
+    /**
+     * 根据组名获取组管理器
+     * @param name
+     * @return
+     * @throws JIException
+     * @throws IllegalArgumentException
+     * @throws UnknownHostException
+     */
     public OPCGroupStateMgt getGroupByName(final String name) throws JIException, IllegalArgumentException, UnknownHostException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(2);
@@ -102,20 +121,19 @@ public class OPCServer extends BaseCOMObject {
     }
 
     /**
-     * Get the groups
-     *
-     * @param scope The scope to get
-     * @return A string enumerator with the groups
+     * 获取所有组
+     * @param scope 数据项类型范围
+     * @return
      * @throws JIException
      * @throws IllegalArgumentException
      * @throws UnknownHostException
      */
-    public EnumString getGroups(final OPCENUMSCOPE scope) throws JIException, IllegalArgumentException, UnknownHostException {
+    public EnumString getGroups(final OpcEnumScope scope) throws JIException, IllegalArgumentException, UnknownHostException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(5);
 
         callObject.addInParamAsShort((short) scope.id(), JIFlags.FLAG_NULL);
-        callObject.addInParamAsUUID(cn.com.sgcc.gdt.opc.core.dcom.common.Constants.IEnumString_IID, JIFlags.FLAG_NULL);
+        callObject.addInParamAsUUID(cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.IEnumString_IID, JIFlags.FLAG_NULL);
         callObject.addOutParamAsType(IJIComObject.class, JIFlags.FLAG_NULL);
 
         Object[] result = Helper.callRespectSFALSE(getCOMObject(), callObject);

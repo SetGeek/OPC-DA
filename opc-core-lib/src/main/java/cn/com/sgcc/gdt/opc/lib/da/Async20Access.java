@@ -1,39 +1,25 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.lib.da;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.EventHandler;
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResult;
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResultSet;
-import cn.com.sgcc.gdt.opc.core.dcom.common.ResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResult;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.ResultSet;
 import cn.com.sgcc.gdt.opc.core.dcom.da.IOPCDataCallback;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCDATASOURCE;
-import cn.com.sgcc.gdt.opc.core.dcom.da.ValueData;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcDatasource;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.ValueData;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCAsyncIO2;
 import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
 import org.jinterop.dcom.common.JIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
 
+/**
+ * 异步访问通道
+ * @author ck.yang
+ */
 public class Async20Access extends AccessBase implements IOPCDataCallback {
     private static Logger logger = LoggerFactory.getLogger(Async20Access.class);
 
@@ -66,7 +52,7 @@ public class Async20Access extends AccessBase implements IOPCDataCallback {
                 throw new NotConnectedException();
             }
 
-            this.group.getAsyncIO20().refresh(OPCDATASOURCE.OPC_DS_CACHE, 0);
+            this.group.getAsyncIO20().refresh(OpcDatasource.OPC_DS_CACHE, 0);
         }
     }
 

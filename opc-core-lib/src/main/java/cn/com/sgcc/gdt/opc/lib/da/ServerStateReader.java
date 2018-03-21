@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCSERVERSTATUS;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcServerStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,7 @@ public class ServerStateReader {
     protected void once() {
         _log.debug("Reading server state");
 
-        final OPCSERVERSTATUS state = this._server.getServerState();
+        final OpcServerStatus state = this._server.getServerState();
 
         for (final ServerStateListener listener : new ArrayList<ServerStateListener>(this._listeners)) {
             listener.stateUpdate(state);

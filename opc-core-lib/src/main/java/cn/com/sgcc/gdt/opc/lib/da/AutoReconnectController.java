@@ -1,22 +1,3 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.lib.da;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,20 +5,25 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * 自动重连控制器
+ * @author ck.yang
+ */
 @Slf4j
 public class AutoReconnectController implements ServerConnectionStateListener {
-
+    /** 默认重连的间隔时间：5000 ms */
     private static final int DEFAULT_DELAY = 5 * 1000;
+    /** 重连延时 */
+    private int delay;
 
-    private int _delay;
+    private final Server server;
 
-    private final Server _server;
+    private final Set<AutoReconnectListener> listeners = new CopyOnWriteArraySet<AutoReconnectListener>();
 
-    private final Set<AutoReconnectListener> _listeners = new CopyOnWriteArraySet<AutoReconnectListener>();
+    /** 原子性：状态，默认为不可用 */
+    private AutoReconnectState state = AutoReconnectState.DISABLED;
 
-    private AutoReconnectState _state = AutoReconnectState.DISABLED;
-
-    private Thread _connectTask = null;
+    private Thread connectTask = null;
 
     public AutoReconnectController(final Server server) {
         this(server, DEFAULT_DELAY);
@@ -47,35 +33,50 @@ public class AutoReconnectController implements ServerConnectionStateListener {
         super();
         setDelay(delay);
 
-        this._server = server;
-        this._server.addStateListener(this);
+        this.server = server;
+        this.server.addStateListener(this);
     }
 
+    /**
+     * 添加监听
+     * @param listener
+     */
     public void addListener(final AutoReconnectListener listener) {
         if (listener != null) {
-            this._listeners.add(listener);
-            listener.stateChanged(this._state);
+            this.listeners.add(listener);
+            listener.stateChanged(this.state);
         }
     }
 
+    /**
+     * 移除监听
+     * @param listener
+     */
     public void removeListener(final AutoReconnectListener listener) {
-        this._listeners.remove(listener);
+        this.listeners.remove(listener);
     }
 
+    /**
+     * 通知客户端改变状态
+     * @param state
+     */
     protected void notifyStateChange(final AutoReconnectState state) {
-        this._state = state;
-        for (AutoReconnectListener listener : this._listeners) {
+        this.state = state;
+        for (AutoReconnectListener listener : this.listeners) {
             listener.stateChanged(state);
         }
     }
 
+    /**
+     * 获取延迟
+     * @return
+     */
     public int getDelay() {
-        return this._delay;
+        return this.delay;
     }
 
     /**
-     * Set the reconnect delay. If the delay less than or equal to zero it will be
-     * the default delay time.
+     * 如果延迟时间小于0，则使用默认的延迟时间
      *
      * @param delay The delay to use
      */
@@ -83,20 +84,25 @@ public class AutoReconnectController implements ServerConnectionStateListener {
         if (delay <= 0) {
             delay = DEFAULT_DELAY;
         }
-        this._delay = delay;
+        this.delay = delay;
     }
 
+    /**
+     * 连接服务器
+     */
     public synchronized void connect() {
         if (isRequested()) {
             return;
         }
-
         log.debug("Requesting connection");
         notifyStateChange(AutoReconnectState.DISCONNECTED);
 
         triggerReconnect(false);
     }
 
+    /**
+     * 断开服务器
+     */
     public synchronized void disconnect() {
         if (!isRequested()) {
             return;
@@ -105,16 +111,20 @@ public class AutoReconnectController implements ServerConnectionStateListener {
         log.debug("Un-Requesting connection");
 
         notifyStateChange(AutoReconnectState.DISABLED);
-        this._server.disconnect();
+        this.server.disconnect();
     }
 
+    /**
+     * 判断状态是否可用
+     * @return
+     */
     public boolean isRequested() {
-        return this._state != AutoReconnectState.DISABLED;
+        return this.state != AutoReconnectState.DISABLED;
     }
 
     @Override
     public synchronized void connectionStateChanged(final boolean connected) {
-        log.debug("Connection state changed: " + connected);
+        log.info("连接状态改变: {}", connected);
 
         if (!connected) {
             if (isRequested()) {
@@ -123,46 +133,55 @@ public class AutoReconnectController implements ServerConnectionStateListener {
             }
         } else {
             if (!isRequested()) {
-                this._server.disconnect();
+                this.server.disconnect();
             } else {
                 notifyStateChange(AutoReconnectState.CONNECTED);
             }
         }
     }
 
+    /**
+     * 触发重连
+     * @param wait
+     */
     private synchronized void triggerReconnect(final boolean wait) {
-        if (this._connectTask != null) {
-            log.info("Connect thread already running");
+        if (this.connectTask != null) {
+            log.info("服务器已经连接，无需重连！");
             return;
         }
 
-        log.debug("Trigger reconnect");
+        log.info("触发服务重连");
+        this.connectTask = new Thread(new Runnable() {
 
-        this._connectTask = new Thread(new Runnable() {
-
+            @Override
             public void run() {
                 boolean result = false;
                 try {
                     result = performReconnect(wait);
                 } finally {
-                    AutoReconnectController.this._connectTask = null;
-                    log.debug(String.format("performReconnect completed : %s", result));
+                    AutoReconnectController.this.connectTask = null;
+                    log.info("已完成服务重连:{}", result);
                     if (!result) {
                         triggerReconnect(true);
                     }
                 }
             }
-        }, "OPCReconnectThread");
-        this._connectTask.setDaemon(true);
-        this._connectTask.start();
+        }, "客户端监听-OPC自动重连");
+        this.connectTask.setDaemon(true);
+        this.connectTask.start();
     }
 
+    /**
+     * 执行重连
+     * @param wait
+     * @return
+     */
     private boolean performReconnect(final boolean wait) {
         try {
             if (wait) {
                 notifyStateChange(AutoReconnectState.WAITING);
-                log.debug(String.format("Delaying (%s)...", this._delay));
-                Thread.sleep(this._delay);
+                log.info("推迟 {}...", this.delay);
+                Thread.sleep(this.delay);
             }
         } catch (InterruptedException e) {
         }
@@ -173,15 +192,15 @@ public class AutoReconnectController implements ServerConnectionStateListener {
         }
 
         try {
-            log.debug("Connecting to server");
+            log.debug("连接到服务器");
             notifyStateChange(AutoReconnectState.CONNECTING);
             synchronized (this) {
-                this._server.connect();
+                this.server.connect();
                 return true;
             }
             // CONNECTED state will be set by server callback
         } catch (Throwable e) {
-            log.info("Re-connect failed", e);
+            log.error("服务重连失败！", e);
             notifyStateChange(AutoReconnectState.DISCONNECTED);
             return false;
         }

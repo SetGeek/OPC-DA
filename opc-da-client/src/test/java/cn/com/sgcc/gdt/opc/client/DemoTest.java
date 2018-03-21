@@ -6,6 +6,8 @@ import cn.com.sgcc.gdt.opc.lib.common.AlreadyConnectedException;
 import cn.com.sgcc.gdt.opc.lib.common.ConnectionInformation;
 import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
 import cn.com.sgcc.gdt.opc.lib.da.*;
+import cn.com.sgcc.gdt.opc.lib.da.exception.AddFailedException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
 import com.alibaba.fastjson.JSONArray;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;

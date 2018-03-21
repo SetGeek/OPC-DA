@@ -33,5 +33,6 @@ public class ConnectInfo extends ConnectionInformation {
     private Long timeout = 1000L;
     /** 数据刷新时间：默认为1000L ms */
     private Long heartbeat = 1000L;
-
+    /** kafka消息队列的主题 */
+    private String topic;
 }

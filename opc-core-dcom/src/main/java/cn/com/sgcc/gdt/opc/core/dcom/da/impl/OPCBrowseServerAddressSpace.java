@@ -1,31 +1,12 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.EnumString;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.Helper;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSEDIRECTION;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSETYPE;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCNAMESPACETYPE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseDirection;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseType;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcNamespaceType;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 
@@ -47,7 +28,7 @@ public class OPCBrowseServerAddressSpace extends BaseCOMObject {
      * @return the organization of the namespace
      * @throws JIException
      */
-    public OPCNAMESPACETYPE queryOrganization() throws JIException {
+    public OpcNamespaceType queryOrganization() throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(0);
 
@@ -55,27 +36,27 @@ public class OPCBrowseServerAddressSpace extends BaseCOMObject {
 
         Object result[] = getCOMObject().call(callObject);
 
-        return OPCNAMESPACETYPE.fromID((Short) result[0]);
+        return OpcNamespaceType.fromID((Short) result[0]);
     }
 
     /**
      * Direct the browser to another position
      * <p>
      * Depending on the <em>direction</em> the new position will be set based on the provided
-     * position information. If the direction is {@link OPCBROWSEDIRECTION#OPC_BROWSE_TO} then
-     * the <em>position</em> is the item to go to. If the direction is {@link OPCBROWSEDIRECTION#OPC_BROWSE_DOWN}
+     * position information. If the direction is {@link OpcBrowseDirection#OPC_BROWSE_TO} then
+     * the <em>position</em> is the item to go to. If the direction is {@link OpcBrowseDirection#OPC_BROWSE_DOWN}
      * the browser will descent into the tree down (not to) the branch item in <em>position</em>.
-     * Passing {@link OPCBROWSEDIRECTION#OPC_BROWSE_UP} won't need a <em>position</em> (pass <code>null</code>)
+     * Passing {@link OpcBrowseDirection#OPC_BROWSE_UP} won't need a <em>position</em> (pass <code>null</code>)
      * and will ascent in the tree one level.
      * <p>
-     * Passing {@link OPCBROWSEDIRECTION#OPC_BROWSE_TO} and <code>null</code> as position will
+     * Passing {@link OpcBrowseDirection#OPC_BROWSE_TO} and <code>null</code> as position will
      * go to the first root entry of the namespace.
      *
      * @param position  The item position reference for the direction
      * @param direction The direction to go based on the position
      * @throws JIException
      */
-    public void changePosition(final String position, final OPCBROWSEDIRECTION direction) throws JIException {
+    public void changePosition(final String position, final OpcBrowseDirection direction) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(1);
 
@@ -86,7 +67,7 @@ public class OPCBrowseServerAddressSpace extends BaseCOMObject {
 
     }
 
-    public EnumString browse(final OPCBROWSETYPE browseType, final String filterCriteria, final int accessRights, final int dataType) throws JIException, IllegalArgumentException, UnknownHostException {
+    public EnumString browse(final OpcBrowseType browseType, final String filterCriteria, final int accessRights, final int dataType) throws JIException, IllegalArgumentException, UnknownHostException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(2);
 

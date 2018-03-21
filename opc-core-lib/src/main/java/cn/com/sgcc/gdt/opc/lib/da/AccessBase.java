@@ -1,22 +1,3 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.lib.da;
 
 import java.net.UnknownHostException;
@@ -27,12 +8,15 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.AddFailedException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
+import lombok.extern.slf4j.Slf4j;
 import org.jinterop.dcom.common.JIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class AccessBase implements ServerConnectionStateListener {
-    private static Logger logger = LoggerFactory.getLogger(AccessBase.class);
 
     protected Server server = null;
 
@@ -158,6 +142,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
         }
     }
 
+    @Override
     public void connectionStateChanged(final boolean connected) {
         try {
             if (connected) {
@@ -166,7 +151,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
                 stop();
             }
         } catch (final Exception e) {
-            logger.error(String.format("Failed to change state (%s)", connected), e);
+            log.error(String.format("Failed to change state (%s)", connected), e);
         }
     }
 
@@ -175,7 +160,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
             return;
         }
 
-        logger.debug("Create a new group");
+        log.debug("Create a new group");
         this.group = this.server.addGroup();
         this.group.setActive(true);
         this.active = true;
@@ -186,7 +171,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
     }
 
     protected void realizeItem(final String itemId) throws JIException, AddFailedException {
-        logger.debug("Realizing item: {}", itemId);
+        log.debug("Realizing item: {}", itemId);
 
         final DataCallback dataCallback = this.itemSet.get(itemId);
         if (dataCallback == null) {
@@ -206,11 +191,12 @@ public abstract class AccessBase implements ServerConnectionStateListener {
         try {
             this.group.removeItem(itemId);
         } catch (final Throwable e) {
-            logger.error(String.format("Failed to unrealize item '%s'", itemId), e);
+            log.error(String.format("Failed to unrealize item '%s'", itemId), e);
         }
     }
 
-    /*
+    /**
+     * 获取所有
      * FIXME: need some perfomance boost: subscribe all in one call
      */
     protected void realizeAll() {
@@ -218,25 +204,28 @@ public abstract class AccessBase implements ServerConnectionStateListener {
             try {
                 realizeItem(itemId);
             } catch (final AddFailedException e) {
-                Integer rc = e.getErrors().get(itemId);
+                Integer rc = e.getError().get(itemId);
                 if (rc == null) {
                     rc = -1;
                 }
-                logger.warn(String.format("Failed to add item: %s (%08X)", itemId, rc));
+                log.warn(String.format("Failed to add item: %s (%08X)", itemId, rc));
 
             } catch (final Exception e) {
-                logger.warn("Failed to realize item: " + itemId, e);
+                log.warn("Failed to realize item: " + itemId, e);
             }
         }
     }
 
+    /**
+     * 释放所有
+     */
     protected void unrealizeAll() {
         this.items.clear();
         this.itemCache.clear();
         try {
             this.group.clear();
         } catch (final JIException e) {
-            logger.info("Failed to clear group. No problem if we already lost the connection", e);
+            log.warn("无法清除group，如果已断开连接，可忽略该提醒", e);
         }
     }
 
@@ -253,7 +242,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
         try {
             this.group.remove();
         } catch (final Throwable t) {
-            logger.warn("Failed to disable group. No problem if we already lost connection");
+            log.warn("服务禁用Group，如果已断开连接，可忽略该提醒");
         }
         this.group = null;
     }
@@ -267,7 +256,7 @@ public abstract class AccessBase implements ServerConnectionStateListener {
 
     protected void updateItem(final Item item, final ItemState itemState) {
         if (this.dataLogger != null) {
-            this.dataLogger.debug("Update item: {}, {}", item.getId(), itemState);
+            this.dataLogger.debug("更新item: {}, {}", item.getId(), itemState);
         }
 
         final DataCallback dataCallback = this.items.get(item);

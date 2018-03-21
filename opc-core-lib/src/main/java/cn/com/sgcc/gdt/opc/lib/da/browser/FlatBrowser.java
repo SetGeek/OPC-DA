@@ -19,7 +19,7 @@
 
 package cn.com.sgcc.gdt.opc.lib.da.browser;
 
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSETYPE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseType;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCBrowseServerAddressSpace;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.JIVariant;
@@ -54,7 +54,7 @@ public class FlatBrowser extends BaseBrowser {
      * @throws JIException
      */
     public Collection<String> browse(final String filterCriteria, final EnumSet<Access> accessMask, final int variantType) throws IllegalArgumentException, UnknownHostException, JIException {
-        return browse(OPCBROWSETYPE.OPC_FLAT, filterCriteria, accessMask, variantType);
+        return browse(OpcBrowseType.OPC_FLAT, filterCriteria, accessMask, variantType);
     }
 
     public Collection<String> browse(final String filterCriteria) throws IllegalArgumentException, UnknownHostException, JIException {

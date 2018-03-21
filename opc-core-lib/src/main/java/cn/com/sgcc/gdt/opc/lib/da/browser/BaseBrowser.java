@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.EnumString;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSETYPE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseType;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCBrowseServerAddressSpace;
 import org.jinterop.dcom.common.JIException;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public class BaseBrowser {
      * @throws UnknownHostException
      * @throws JIException
      */
-    protected Collection<String> browse(final OPCBROWSETYPE type, final String filterCriteria, final EnumSet<Access> accessMask, final int variantType) throws IllegalArgumentException, UnknownHostException, JIException {
+    protected Collection<String> browse(final OpcBrowseType type, final String filterCriteria, final EnumSet<Access> accessMask, final int variantType) throws IllegalArgumentException, UnknownHostException, JIException {
         int accessMaskValue = 0;
 
         if (accessMask.contains(Access.READ)) {

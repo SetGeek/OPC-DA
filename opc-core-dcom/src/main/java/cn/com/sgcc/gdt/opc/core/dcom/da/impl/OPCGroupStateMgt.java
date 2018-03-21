@@ -1,29 +1,10 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.EventHandler;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
 import cn.com.sgcc.gdt.opc.core.dcom.da.IOPCDataCallback;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCGroupState;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcGroupState;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 import org.jinterop.dcom.impls.JIObjectFactory;
@@ -31,16 +12,20 @@ import org.jinterop.dcom.impls.JIObjectFactory;
 import java.net.UnknownHostException;
 
 /**
- * Implementation of <code>IOPCGroupStateMgt</code>
- *
- * @author Jens Reimann <jens.reimann@th4-systems.com>
+ * OPC组状态管理器
+ * @author ck.yang
  */
 public class OPCGroupStateMgt extends BaseCOMObject {
     public OPCGroupStateMgt(final IJIComObject opcGroup) throws IllegalArgumentException, UnknownHostException, JIException {
         super(opcGroup.queryInterface(Constants.IOPCGroupStateMgt_IID));
     }
 
-    public OPCGroupState getState() throws JIException {
+    /**
+     * 获取组状态
+     * @return
+     * @throws JIException
+     */
+    public OpcGroupState getState() throws JIException {
         final JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(0);
 
@@ -55,7 +40,7 @@ public class OPCGroupStateMgt extends BaseCOMObject {
 
         final Object result[] = getCOMObject().call(callObject);
 
-        final OPCGroupState state = new OPCGroupState();
+        final OpcGroupState state = new OpcGroupState();
         state.setUpdateRate((Integer) result[0]);
         state.setActive((Boolean) result[1]);
         state.setName(((JIString) ((JIPointer) result[2]).getReferent()).getString());
@@ -69,15 +54,14 @@ public class OPCGroupStateMgt extends BaseCOMObject {
     }
 
     /**
-     * Set the group state Leaving any of the parameters <code>null</code> will keep the current value untouched.
-     *
-     * @param requestedUpdateRate the requested update rate
-     * @param active              Flag if the group is active or not
-     * @param timeBias            The time bias
-     * @param percentDeadband     the deadband percent
-     * @param localeID            the locale ID
-     * @param clientHandle        the client handle
-     * @return the granted update rate
+     * 设置组状态，如果为空，将保持原有的状态
+     * @param requestedUpdateRate
+     * @param active
+     * @param timeBias
+     * @param percentDeadband
+     * @param localeID
+     * @param clientHandle
+     * @return
      * @throws JIException
      */
     public int setState(final Integer requestedUpdateRate, final Boolean active, final Integer timeBias, final Float percentDeadband, final Integer localeID, final Integer clientHandle) throws JIException {
@@ -107,9 +91,8 @@ public class OPCGroupStateMgt extends BaseCOMObject {
     }
 
     /**
-     * Rename to group
-     *
-     * @param name the new name
+     * 设置组名
+     * @param name
      * @throws JIException
      */
     public void setName(final String name) throws JIException {
@@ -122,13 +105,12 @@ public class OPCGroupStateMgt extends BaseCOMObject {
     }
 
     /**
-     * Clone the group
-     *
-     * @param name the name of the cloned group
-     * @return The cloned group
+     * 复制组
+     * @param name
+     * @return
      * @throws JIException
-     * @throws UnknownHostException
      * @throws IllegalArgumentException
+     * @throws UnknownHostException
      */
     public OPCGroupStateMgt clone(final String name) throws JIException, IllegalArgumentException, UnknownHostException {
         final JICallBuilder callObject = new JICallBuilder(true);
@@ -143,10 +125,9 @@ public class OPCGroupStateMgt extends BaseCOMObject {
     }
 
     /**
-     * Attach a new callback to the group
-     *
-     * @param callback The callback to attach
-     * @return The event handler information
+     * 向组添加回调函数
+     * @param callback
+     * @return
      * @throws JIException
      */
     public EventHandler attach(final IOPCDataCallback callback) throws JIException {
@@ -166,6 +147,10 @@ public class OPCGroupStateMgt extends BaseCOMObject {
         return callbackObject;
     }
 
+    /**
+     * 获取异步访问通道
+     * @return
+     */
     public OPCAsyncIO2 getAsyncIO2() {
         try {
             return new OPCAsyncIO2(getCOMObject());
@@ -174,6 +159,10 @@ public class OPCGroupStateMgt extends BaseCOMObject {
         }
     }
 
+    /**
+     * 获取同步访问通道
+     * @return
+     */
     public OPCSyncIO getSyncIO() {
         try {
             return new OPCSyncIO(getCOMObject());

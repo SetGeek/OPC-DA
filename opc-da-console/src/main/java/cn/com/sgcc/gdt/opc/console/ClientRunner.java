@@ -6,8 +6,10 @@ import cn.com.sgcc.gdt.opc.client.bean.DataItem;
 import cn.com.sgcc.gdt.opc.console.bean.ConnectInfo;
 import cn.com.sgcc.gdt.opc.console.config.ClientConfig;
 import cn.com.sgcc.gdt.opc.lib.da.Server;
+import com.alibaba.fastjson.JSONArray;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -37,10 +39,14 @@ public class ClientRunner {
     /** 并发的Map，key为连接的编号（即类ServerInfo中的id），存储客户端连接，以便逐个连接与释放 */
     ConcurrentMap<String, Connecter> connecterMap = new ConcurrentHashMap<>();
 
+    @Autowired
+    KafkaTemplate kafkaTemplate;
+
     @PostConstruct
     public void init() throws Throwable {
         for(String runId : clientConfig.getRunServerId()){
             this.connect(runId);
+            this.read(runId);
         }
     }
 
@@ -95,17 +101,15 @@ public class ClientRunner {
      */
     public void read(String serverId) throws Throwable {
         Optional<Connecter> connecter = Optional.of(connecterMap.get(serverId));
-        Server server = connecter.get().getServer();
+        Server server = connecter.get().getServer().get();
         ConnectInfo serverInfo = this.getServerInfo(serverId);
-        if(serverInfo.getHeartbeat()!=null){
-            Browser.readAsyn(server, scheduledPool, serverInfo.getHeartbeat(), (List<DataItem> dataItems)->{
-                System.err.println("查询结果"+dataItems);
-            });
-        } else{
-            Browser.readAsyn(server, scheduledPool, (List<DataItem> dataItems)->{
-                System.err.println("查询结果"+dataItems);
-            });
-        }
+        String topic = serverInfo.getTopic();
+        Browser.readAsyn(server, scheduledPool, serverInfo.getHeartbeat(), (List<DataItem> dataItems)->{
+            String data = JSONArray.toJSON(dataItems).toString();
+            kafkaTemplate.send(topic, data).get();
+            log.info("主题'{}'已发送！,详情：{}", topic, data);
+        });
+
     }
 
     /**

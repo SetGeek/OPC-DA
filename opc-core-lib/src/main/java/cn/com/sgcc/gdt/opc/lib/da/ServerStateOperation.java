@@ -19,20 +19,19 @@
 
 package cn.com.sgcc.gdt.opc.lib.da;
 
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCSERVERSTATUS;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcServerStatus;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A server state operation which can be interruped
  *
  * @author Jens Reimann
  */
+@Slf4j
 public class ServerStateOperation implements Runnable {
-    private static Logger _log = LoggerFactory.getLogger(ServerStateOperation.class);
 
-    public OPCSERVERSTATUS _serverStatus = null;
+    public OpcServerStatus _serverStatus = null;
 
     public OPCServer _server;
 
@@ -66,7 +65,7 @@ public class ServerStateOperation implements Runnable {
                 this._lock.notify();
             }
         } catch (Throwable e) {
-            _log.info("Failed to get server state", e);
+            log.info("无法获取服务状态", e);
             this._error = e;
             this._running = false;
             synchronized (this._lock) {
@@ -83,25 +82,25 @@ public class ServerStateOperation implements Runnable {
      * @return the server state or <code>null</code> if the server is not set.
      * @throws Throwable any error that occurred
      */
-    public OPCSERVERSTATUS getServerState(final int timeout) throws Throwable {
+    public OpcServerStatus getServerState(final int timeout) throws Throwable {
         if (this._server == null) {
-            _log.debug("No connection to server. Skipping...");
+            log.debug("服务器未连接，跳过操作...");
             return null;
         }
 
-        Thread t = new Thread(this, "OPCServerStateReader");
+        Thread t = new Thread(this, "客户端任务-读取服务器状态");
 
         synchronized (this._lock) {
             t.start();
             this._lock.wait(timeout);
             if (this._running) {
-                _log.warn("State operation still running. Interrupting...");
+                log.warn("State operation still running. Interrupting...");
                 t.interrupt();
                 throw new InterruptedException("Interrupted getting server state");
             }
         }
         if (this._error != null) {
-            _log.warn("An error occurred while getting server state", this._error);
+            log.warn("An error occurred while getting server state", this._error);
             throw this._error;
         }
 

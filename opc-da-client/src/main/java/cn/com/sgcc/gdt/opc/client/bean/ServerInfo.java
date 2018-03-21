@@ -1,10 +1,7 @@
 package cn.com.sgcc.gdt.opc.client.bean;
 
 import cn.com.sgcc.gdt.opc.core.dcom.list.ClassDetails;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -17,6 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
+@EqualsAndHashCode
 public class ServerInfo extends ClassDetails implements Serializable {
     private String progId;
     private String clsId;

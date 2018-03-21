@@ -1,30 +1,9 @@
-/*
- * This file is part of the OpenSCADA project
- * 
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- * Copyright (C) 2013 Jens Reimann (ctron@dentrassi.de)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
-import cn.com.sgcc.gdt.opc.core.dcom.common.*;
-import cn.com.sgcc.gdt.opc.core.dcom.da.ValueData;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.*;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.ValueData;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.EventHandlerImpl;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
 import cn.com.sgcc.gdt.opc.core.dcom.da.IOPCDataCallback;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
@@ -32,6 +11,10 @@ import org.jinterop.dcom.core.*;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * OPC数据操作回调
+ * @author ck.yang
+ */
 public class OPCDataCallback extends EventHandlerImpl {
     private IOPCDataCallback callback = null;
 
@@ -44,7 +27,7 @@ public class OPCDataCallback extends EventHandlerImpl {
     public Object[] OnDataChange(final int transactionId, final int serverGroupHandle, final int masterQuality, final int masterErrorCode, final int count, final JIArray clientHandles, final JIArray values, final JIArray qualities, final JIArray timestamps, final JIArray errors) {
         final IOPCDataCallback callback = this.callback;
         if (callback == null) {
-            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
         }
 
         // get arrays for more readable code later ;-)
@@ -72,12 +55,12 @@ public class OPCDataCallback extends EventHandlerImpl {
         }
 
         // The client must always return S_OK
-        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
     }
 
     public synchronized Object[] OnReadComplete(final int transactionId, final int serverGroupHandle, final int masterQuality, final int masterErrorCode, final int count, final JIArray clientHandles, final JIArray values, final JIArray qualities, final JIArray timestamps, final JIArray errors) {
         if (this.callback == null) {
-            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
         }
 
         // get arrays for more readable code later ;-)
@@ -90,11 +73,11 @@ public class OPCDataCallback extends EventHandlerImpl {
         // create result data
         final KeyedResultSet<Integer, ValueData> result = new KeyedResultSet<Integer, ValueData>();
         for (int i = 0; i < count; i++) {
-            final ValueData vd = new ValueData();
-            vd.setQuality(qualitiesArray[i]);
-            vd.setTimestamp(FILETIME.fromStruct(timestampArray[i]).asCalendar());
-            vd.setValue(valuesArray[i]);
-            result.add(new KeyedResult<Integer, ValueData>(itemHandles[i], vd, errorCodes[i]));
+            final ValueData valueData = new ValueData();
+            valueData.setQuality(qualitiesArray[i]);
+            valueData.setTimestamp(FILETIME.fromStruct(timestampArray[i]).asCalendar());
+            valueData.setValue(valuesArray[i]);
+            result.add(new KeyedResult<Integer, ValueData>(itemHandles[i], valueData, errorCodes[i]));
         }
 
         // fire event
@@ -105,12 +88,12 @@ public class OPCDataCallback extends EventHandlerImpl {
         }
 
         // The client must always return S_OK
-        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
     }
 
     public synchronized Object[] OnWriteComplete(final int transactionId, final int serverGroupHandle, final int masterErrorCode, final int count, final JIArray clientHandles, final JIArray errors) {
         if (this.callback == null) {
-            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
         }
 
         // get arrays for more readable code later ;-)
@@ -131,18 +114,18 @@ public class OPCDataCallback extends EventHandlerImpl {
         }
 
         // The client must always return S_OK
-        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
     }
 
     public synchronized Object[] OnCancelComplete(final int transactionId, final int serverGroupHandle) {
         if (this.callback == null) {
-            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+            return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
         }
 
         this.callback.cancelComplete(transactionId, serverGroupHandle);
 
         // The client must always return S_OK
-        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.Constants.S_OK};
+        return new Object[]{cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants.S_OK};
     }
 
     public synchronized JILocalCoClass getCoClass() throws JIException {

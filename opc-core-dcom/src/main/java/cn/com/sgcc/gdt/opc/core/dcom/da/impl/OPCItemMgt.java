@@ -1,44 +1,35 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2012 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResult;
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResultSet;
-import cn.com.sgcc.gdt.opc.core.dcom.common.Result;
-import cn.com.sgcc.gdt.opc.core.dcom.common.ResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResult;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.Result;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.ResultSet;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.Helper;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCITEMDEF;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCITEMRESULT;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemResult;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemDef;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 
+/**
+ * OPC数据项管理
+ * @author ck.yang
+ */
 public class OPCItemMgt extends BaseCOMObject {
     public OPCItemMgt(final IJIComObject opcGroup) throws JIException {
         super(opcGroup.queryInterface(Constants.IOPCItemMgt_IID));
     }
 
-    public KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> validate(final OPCITEMDEF... items) throws JIException {
+    /**
+     * 校验数据项
+     * @param items
+     * @return
+     * @throws JIException
+     */
+    public KeyedResultSet<OpcItemDef, OpcItemResult> validate(final OpcItemDef... items) throws JIException {
         if (items.length == 0) {
-            return new KeyedResultSet<OPCITEMDEF, OPCITEMRESULT>();
+            return new KeyedResultSet<OpcItemDef, OpcItemResult>();
         }
 
         final JICallBuilder callObject = new JICallBuilder(true);
@@ -53,7 +44,7 @@ public class OPCItemMgt extends BaseCOMObject {
         callObject.addInParamAsInt(items.length, JIFlags.FLAG_NULL);
         callObject.addInParamAsArray(itemArray, JIFlags.FLAG_NULL);
         callObject.addInParamAsInt(0, JIFlags.FLAG_NULL); // don't update blobs
-        callObject.addOutParamAsObject(new JIPointer(new JIArray(OPCITEMRESULT.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
+        callObject.addOutParamAsObject(new JIPointer(new JIArray(OpcItemResult.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
         callObject.addOutParamAsObject(new JIPointer(new JIArray(Integer.class, null, 1, true)), JIFlags.FLAG_NULL);
 
         final Object result[] = Helper.callRespectSFALSE(getCOMObject(), callObject);
@@ -61,19 +52,25 @@ public class OPCItemMgt extends BaseCOMObject {
         final JIStruct[] results = (JIStruct[]) ((JIArray) ((JIPointer) result[0]).getReferent()).getArrayInstance();
         final Integer[] errorCodes = (Integer[]) ((JIArray) ((JIPointer) result[1]).getReferent()).getArrayInstance();
 
-        final KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> resultList = new KeyedResultSet<OPCITEMDEF, OPCITEMRESULT>(items.length);
+        final KeyedResultSet<OpcItemDef, OpcItemResult> resultList = new KeyedResultSet<OpcItemDef, OpcItemResult>(items.length);
         for (int i = 0; i < items.length; i++) {
-            final OPCITEMRESULT itemResult = OPCITEMRESULT.fromStruct(results[i]);
-            final KeyedResult<OPCITEMDEF, OPCITEMRESULT> resultEntry = new KeyedResult<OPCITEMDEF, OPCITEMRESULT>(items[i], itemResult, errorCodes[i]);
+            final OpcItemResult itemResult = OpcItemResult.fromStruct(results[i]);
+            final KeyedResult<OpcItemDef, OpcItemResult> resultEntry = new KeyedResult<OpcItemDef, OpcItemResult>(items[i], itemResult, errorCodes[i]);
             resultList.add(resultEntry);
         }
 
         return resultList;
     }
 
-    public KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> add(final OPCITEMDEF... items) throws JIException {
+    /**
+     * 添加数据项
+     * @param items
+     * @return
+     * @throws JIException
+     */
+    public KeyedResultSet<OpcItemDef, OpcItemResult> add(final OpcItemDef... items) throws JIException {
         if (items.length == 0) {
-            return new KeyedResultSet<OPCITEMDEF, OPCITEMRESULT>();
+            return new KeyedResultSet<OpcItemDef, OpcItemResult>();
         }
 
         final JICallBuilder callObject = new JICallBuilder(true);
@@ -89,12 +86,12 @@ public class OPCItemMgt extends BaseCOMObject {
         callObject.addInParamAsArray(itemArray, JIFlags.FLAG_NULL);
 
         /*
-        callObject.addOutParamAsObject ( new JIPointer ( new JIArray ( OPCITEMRESULT.getStruct (), null, 1, true ) ),
+        callObject.addOutParamAsObject ( new JIPointer ( new JIArray ( OpcItemResult.getStruct (), null, 1, true ) ),
                 JIFlags.FLAG_NULL );
         callObject.addOutParamAsObject ( new JIPointer ( new JIArray ( Integer.class, null, 1, true ) ),
                 JIFlags.FLAG_NULL );
                 */
-        callObject.addOutParamAsObject(new JIPointer(new JIArray(OPCITEMRESULT.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
+        callObject.addOutParamAsObject(new JIPointer(new JIArray(OpcItemResult.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
         callObject.addOutParamAsObject(new JIPointer(new JIArray(Integer.class, null, 1, true)), JIFlags.FLAG_NULL);
 
         final Object result[] = Helper.callRespectSFALSE(getCOMObject(), callObject);
@@ -102,16 +99,22 @@ public class OPCItemMgt extends BaseCOMObject {
         final JIStruct[] results = (JIStruct[]) ((JIArray) ((JIPointer) result[0]).getReferent()).getArrayInstance();
         final Integer[] errorCodes = (Integer[]) ((JIArray) ((JIPointer) result[1]).getReferent()).getArrayInstance();
 
-        final KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> resultList = new KeyedResultSet<OPCITEMDEF, OPCITEMRESULT>(items.length);
+        final KeyedResultSet<OpcItemDef, OpcItemResult> resultList = new KeyedResultSet<OpcItemDef, OpcItemResult>(items.length);
         for (int i = 0; i < items.length; i++) {
-            final OPCITEMRESULT itemResult = OPCITEMRESULT.fromStruct(results[i]);
-            final KeyedResult<OPCITEMDEF, OPCITEMRESULT> resultEntry = new KeyedResult<OPCITEMDEF, OPCITEMRESULT>(items[i], itemResult, errorCodes[i]);
+            final OpcItemResult itemResult = OpcItemResult.fromStruct(results[i]);
+            final KeyedResult<OpcItemDef, OpcItemResult> resultEntry = new KeyedResult<OpcItemDef, OpcItemResult>(items[i], itemResult, errorCodes[i]);
             resultList.add(resultEntry);
         }
 
         return resultList;
     }
 
+    /**
+     * 移除服务处理
+     * @param serverHandles
+     * @return
+     * @throws JIException
+     */
     public ResultSet<Integer> remove(final Integer... serverHandles) throws JIException {
         if (serverHandles.length == 0) {
             return new ResultSet<Integer>();
@@ -134,6 +137,13 @@ public class OPCItemMgt extends BaseCOMObject {
         return results;
     }
 
+    /**
+     * 设置激活状态
+     * @param state
+     * @param items
+     * @return
+     * @throws JIException
+     */
     public ResultSet<Integer> setActiveState(final boolean state, final Integer... items) throws JIException {
         if (items.length == 0) {
             return new ResultSet<Integer>();
@@ -157,12 +167,19 @@ public class OPCItemMgt extends BaseCOMObject {
         return results;
     }
 
+    /**
+     * 设置客户端处理
+     * @param serverHandles
+     * @param clientHandles
+     * @return
+     * @throws JIException
+     */
     public ResultSet<Integer> setClientHandles(final Integer[] serverHandles, final Integer[] clientHandles) throws JIException {
         if (serverHandles.length != clientHandles.length) {
-            throw new JIException(0, "Array sizes don't match");
+            throw new JIException(0, "数组大小不匹配，即服务处理器与客户端处理器的个数不一致！");
         }
         if (serverHandles.length == 0) {
-            return new ResultSet<Integer>();
+            return new ResultSet<>();
         }
 
         final JICallBuilder callObject = new JICallBuilder(true);
@@ -178,7 +195,7 @@ public class OPCItemMgt extends BaseCOMObject {
         final Integer[] errorCodes = (Integer[]) ((JIArray) ((JIPointer) result[0]).getReferent()).getArrayInstance();
         final ResultSet<Integer> results = new ResultSet<Integer>(serverHandles.length);
         for (int i = 0; i < serverHandles.length; i++) {
-            results.add(new Result<Integer>(serverHandles[i], errorCodes[i]));
+            results.add(new Result<>(serverHandles[i], errorCodes[i]));
         }
         return results;
     }

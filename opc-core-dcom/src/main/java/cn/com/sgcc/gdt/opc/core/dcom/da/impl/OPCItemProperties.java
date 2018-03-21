@@ -1,30 +1,11 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResult;
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResult;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResultSet;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.Helper;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
-import cn.com.sgcc.gdt.opc.core.dcom.da.PropertyDescription;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.PropertyDescription;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 
@@ -33,11 +14,22 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * OPC数据项属性
+ * @author ck.yang
+ */
 public class OPCItemProperties extends BaseCOMObject {
+
     public OPCItemProperties(final IJIComObject opcItemProperties) throws IllegalArgumentException, UnknownHostException, JIException {
         super(opcItemProperties.queryInterface(Constants.IOPCItemProperties_IID));
     }
 
+    /**
+     * 查询可用的属性
+     * @param itemID
+     * @return
+     * @throws JIException
+     */
     public Collection<PropertyDescription> queryAvailableProperties(final String itemID) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(0);
@@ -69,6 +61,13 @@ public class OPCItemProperties extends BaseCOMObject {
         return properties;
     }
 
+    /**
+     * 获取指定的属性
+     * @param itemID
+     * @param properties
+     * @return
+     * @throws JIException
+     */
     public KeyedResultSet<Integer, JIVariant> getItemProperties(final String itemID, final int... properties) throws JIException {
         if (properties.length == 0) {
             return new KeyedResultSet<Integer, JIVariant>();
@@ -101,6 +100,13 @@ public class OPCItemProperties extends BaseCOMObject {
         return results;
     }
 
+    /**
+     * 浏览数据项编号
+     * @param itemID
+     * @param properties
+     * @return
+     * @throws JIException
+     */
     public KeyedResultSet<Integer, String> lookupItemIDs(final String itemID, final int... properties) throws JIException {
         if (properties.length == 0) {
             return new KeyedResultSet<Integer, String>();

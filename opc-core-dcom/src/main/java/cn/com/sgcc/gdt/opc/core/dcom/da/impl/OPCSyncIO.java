@@ -1,45 +1,37 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.da.impl;
 
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResult;
-import cn.com.sgcc.gdt.opc.core.dcom.common.KeyedResultSet;
-import cn.com.sgcc.gdt.opc.core.dcom.common.Result;
-import cn.com.sgcc.gdt.opc.core.dcom.common.ResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResult;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.Result;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.ResultSet;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.BaseCOMObject;
 import cn.com.sgcc.gdt.opc.core.dcom.common.impl.Helper;
-import cn.com.sgcc.gdt.opc.core.dcom.da.Constants;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCDATASOURCE;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCITEMSTATE;
-import cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcDatasource;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemState;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.*;
 
+/**
+ * OPC同步访问通道
+ * @author ck.yang
+ */
 public class OPCSyncIO extends BaseCOMObject {
     public OPCSyncIO(final IJIComObject opcSyncIO) throws JIException {
         super(opcSyncIO.queryInterface(Constants.IOPCSyncIO_IID));
     }
 
-    public KeyedResultSet<Integer, OPCITEMSTATE> read(final OPCDATASOURCE source, final Integer... serverHandles) throws JIException {
+    /**
+     * 读取
+     * @param source
+     * @param serverHandles
+     * @return
+     * @throws JIException
+     */
+    public KeyedResultSet<Integer, OpcItemState> read(final OpcDatasource source, final Integer... serverHandles) throws JIException {
         if (serverHandles == null || serverHandles.length == 0) {
-            return new KeyedResultSet<Integer, OPCITEMSTATE>();
+            return new KeyedResultSet<Integer, OpcItemState>();
         }
 
         JICallBuilder callObject = new JICallBuilder(true);
@@ -49,25 +41,31 @@ public class OPCSyncIO extends BaseCOMObject {
         callObject.addInParamAsInt(serverHandles.length, JIFlags.FLAG_NULL);
         callObject.addInParamAsArray(new JIArray(serverHandles, true), JIFlags.FLAG_NULL);
 
-        callObject.addOutParamAsObject(new JIPointer(new JIArray(OPCITEMSTATE.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
+        callObject.addOutParamAsObject(new JIPointer(new JIArray(OpcItemState.getStruct(), null, 1, true)), JIFlags.FLAG_NULL);
         callObject.addOutParamAsObject(new JIPointer(new JIArray(Integer.class, null, 1, true)), JIFlags.FLAG_NULL);
 
         Object result[] = Helper.callRespectSFALSE(getCOMObject(), callObject);
 
-        KeyedResultSet<Integer, OPCITEMSTATE> results = new KeyedResultSet<Integer, OPCITEMSTATE>();
+        KeyedResultSet<Integer, OpcItemState> results = new KeyedResultSet<Integer, OpcItemState>();
         JIStruct[] states = (JIStruct[]) ((JIArray) ((JIPointer) result[0]).getReferent()).getArrayInstance();
         Integer[] errorCodes = (Integer[]) ((JIArray) ((JIPointer) result[1]).getReferent()).getArrayInstance();
 
         for (int i = 0; i < serverHandles.length; i++) {
-            results.add(new KeyedResult<Integer, OPCITEMSTATE>(serverHandles[i], OPCITEMSTATE.fromStruct(states[i]), errorCodes[i]));
+            results.add(new KeyedResult<Integer, OpcItemState>(serverHandles[i], OpcItemState.fromStruct(states[i]), errorCodes[i]));
         }
 
         return results;
     }
 
+    /**
+     * 写入
+     * @param requests
+     * @return
+     * @throws JIException
+     */
     public ResultSet<WriteRequest> write(final WriteRequest... requests) throws JIException {
         if (requests.length == 0) {
-            return new ResultSet<WriteRequest>();
+            return new ResultSet<>();
         }
 
         Integer[] items = new Integer[requests.length];
@@ -89,9 +87,9 @@ public class OPCSyncIO extends BaseCOMObject {
 
         Integer[] errorCodes = (Integer[]) ((JIArray) ((JIPointer) result[0]).getReferent()).getArrayInstance();
 
-        ResultSet<WriteRequest> results = new ResultSet<WriteRequest>();
+        ResultSet<WriteRequest> results = new ResultSet<>();
         for (int i = 0; i < requests.length; i++) {
-            results.add(new Result<WriteRequest>(requests[i], errorCodes[i]));
+            results.add(new Result<>(requests[i], errorCodes[i]));
         }
         return results;
     }

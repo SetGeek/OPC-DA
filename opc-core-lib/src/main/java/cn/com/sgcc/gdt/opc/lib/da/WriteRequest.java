@@ -19,24 +19,20 @@
 
 package cn.com.sgcc.gdt.opc.lib.da;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.jinterop.dcom.core.JIVariant;
 
+/**
+ * 写入请求
+ * @author: ck.yang
+ */
+@Getter
+@AllArgsConstructor
 public class WriteRequest {
-    private Item _item = null;
+    /** 数据项 */
+    private Item item = null;
+    /** 值 */
+    private JIVariant value = null;
 
-    private JIVariant _value = null;
-
-    public WriteRequest(final Item item, final JIVariant value) {
-        super();
-        this._item = item;
-        this._value = value;
-    }
-
-    public Item getItem() {
-        return this._item;
-    }
-
-    public JIVariant getValue() {
-        return this._value;
-    }
 }

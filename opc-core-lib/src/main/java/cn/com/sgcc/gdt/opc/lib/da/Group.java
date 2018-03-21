@@ -20,11 +20,20 @@
 package cn.com.sgcc.gdt.opc.lib.da;
 
 import cn.com.sgcc.gdt.opc.core.dcom.common.*;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResult;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.KeyedResultSet;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.Result;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.ResultSet;
 import cn.com.sgcc.gdt.opc.core.dcom.da.*;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcDatasource;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemDef;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemResult;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcItemState;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCAsyncIO2;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCGroupStateMgt;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCItemMgt;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCSyncIO;
+import cn.com.sgcc.gdt.opc.lib.da.exception.AddFailedException;
 import org.jinterop.dcom.common.JIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,21 +137,21 @@ public class Group
      * @return A result map of item id to result information (including error code).
      * @throws JIException
      */
-    public synchronized Map<String, Result<OPCITEMRESULT>> validateItems (final String... items ) throws JIException
+    public synchronized Map<String, Result<OpcItemResult>> validateItems (final String... items ) throws JIException
     {
-        OPCITEMDEF[] defs = new OPCITEMDEF[items.length];
+        OpcItemDef[] defs = new OpcItemDef[items.length];
         for ( int i = 0; i < items.length; i++ )
         {
-            defs[i] = new OPCITEMDEF ();
+            defs[i] = new OpcItemDef();
             defs[i].setItemID ( items[i] );
         }
 
-        KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> result = this._items.validate ( defs );
+        KeyedResultSet<OpcItemDef, OpcItemResult> result = this._items.validate ( defs );
 
-        Map<String, Result<OPCITEMRESULT>> resultMap = new HashMap<String, Result<OPCITEMRESULT>> ();
-        for ( KeyedResult<OPCITEMDEF, OPCITEMRESULT> resultEntry : result )
+        Map<String, Result<OpcItemResult>> resultMap = new HashMap<String, Result<OpcItemResult>> ();
+        for ( KeyedResult<OpcItemDef, OpcItemResult> resultEntry : result )
         {
-            resultMap.put ( resultEntry.getKey ().getItemID (), new Result<OPCITEMRESULT> ( resultEntry.getValue (), resultEntry.getErrorCode () ) );
+            resultMap.put ( resultEntry.getKey ().getItemID (), new Result<OpcItemResult> ( resultEntry.getValue (), resultEntry.getErrorCode () ) );
         }
 
         return resultMap;
@@ -178,10 +187,10 @@ public class Group
 
         // now fetch missing items from OPC server
         Set<Integer> newClientHandles = new HashSet<Integer> ();
-        OPCITEMDEF[] itemDef = new OPCITEMDEF[missingItems.size ()];
+        OpcItemDef[] itemDef = new OpcItemDef[missingItems.size ()];
         for ( int i = 0; i < missingItems.size (); i++ )
         {
-            OPCITEMDEF def = new OPCITEMDEF ();
+            OpcItemDef def = new OpcItemDef();
             def.setItemID ( missingItems.get ( i ) );
             def.setActive ( true );
 
@@ -198,9 +207,9 @@ public class Group
 
         // check the result and add new items
         Map<String, Integer> failedItems = new HashMap<String, Integer> ();
-        KeyedResultSet<OPCITEMDEF, OPCITEMRESULT> result = this._items.add ( itemDef );
+        KeyedResultSet<OpcItemDef, OpcItemResult> result = this._items.add ( itemDef );
         int i = 0;
-        for ( KeyedResult<OPCITEMDEF, OPCITEMRESULT> entry : result )
+        for ( KeyedResult<OpcItemDef, OpcItemResult> entry : result )
         {
             if ( entry.getErrorCode () == 0 )
             {
@@ -328,18 +337,18 @@ public class Group
 
         Integer[] handles = getServerHandles ( items );
 
-        cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest[] wr = new cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest[items.length];
+        cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest[] wr = new cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest[items.length];
         for ( int i = 0; i < items.length; i++ )
         {
-            wr[i] = new cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest ( handles[i], requests[i].getValue () );
+            wr[i] = new cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest( handles[i], requests[i].getValue () );
         }
 
-        ResultSet<cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest> resultSet = this._syncIO.write ( wr );
+        ResultSet<cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest> resultSet = this._syncIO.write ( wr );
 
         Map<Item, Integer> result = new HashMap<Item, Integer> ();
         for ( int i = 0; i < requests.length; i++ )
         {
-            Result<cn.com.sgcc.gdt.opc.core.dcom.da.WriteRequest> entry = resultSet.get ( i );
+            Result<cn.com.sgcc.gdt.opc.core.dcom.da.bean.WriteRequest> entry = resultSet.get ( i );
             result.put ( requests[i].getItem (), entry.getErrorCode () );
         }
 
@@ -350,10 +359,10 @@ public class Group
     {
         Integer[] handles = getServerHandles ( items );
 
-        KeyedResultSet<Integer, OPCITEMSTATE> states = this._syncIO.read ( device ? OPCDATASOURCE.OPC_DS_DEVICE : OPCDATASOURCE.OPC_DS_CACHE, handles );
+        KeyedResultSet<Integer, OpcItemState> states = this._syncIO.read ( device ? OpcDatasource.OPC_DS_DEVICE : OpcDatasource.OPC_DS_CACHE, handles );
 
         Map<Item, ItemState> data = new HashMap<Item, ItemState> ();
-        for ( KeyedResult<Integer, OPCITEMSTATE> entry : states )
+        for ( KeyedResult<Integer, OpcItemState> entry : states )
         {
             Item item = this._itemMap.get ( entry.getKey () );
             ItemState state = new ItemState ( entry.getErrorCode (), entry.getValue ().getValue (), entry.getValue ().getTimestamp ().asCalendar (), entry.getValue ().getQuality () );

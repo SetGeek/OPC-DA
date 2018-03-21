@@ -1,29 +1,10 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.common.impl;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import cn.com.sgcc.gdt.opc.core.dcom.common.Constants;
+import cn.com.sgcc.gdt.opc.core.dcom.common.bean.Constants;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.IJIComObject;
 import org.jinterop.dcom.core.JIArray;
@@ -32,11 +13,20 @@ import org.jinterop.dcom.core.JIFlags;
 import org.jinterop.dcom.core.JIPointer;
 import org.jinterop.dcom.core.JIString;
 
+/**
+ * OPC公共组件
+ * @author ck.yang
+ */
 public class OPCCommon extends BaseCOMObject {
     public OPCCommon(final IJIComObject opcObject) throws IllegalArgumentException, UnknownHostException, JIException {
         super(opcObject.queryInterface(Constants.IOPCCommon_IID));
     }
 
+    /**
+     * 设置本地id
+     * @param localeID
+     * @throws JIException
+     */
     public void setLocaleID(final int localeID) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(0);
@@ -46,6 +36,11 @@ public class OPCCommon extends BaseCOMObject {
         getCOMObject().call(callObject);
     }
 
+    /**
+     * 获取本地id
+     * @return
+     * @throws JIException
+     */
     public int getLocaleID() throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(1);
@@ -56,6 +51,13 @@ public class OPCCommon extends BaseCOMObject {
         return (Integer) result[0];
     }
 
+    /**
+     * 获取错误信息
+     * @param errorCode
+     * @param localeID
+     * @return
+     * @throws JIException
+     */
     public String getErrorString(final int errorCode, final int localeID) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(3);
@@ -68,6 +70,11 @@ public class OPCCommon extends BaseCOMObject {
         return ((JIString) ((JIPointer) result[0]).getReferent()).getString();
     }
 
+    /**
+     * 设置客户端名称
+     * @param clientName
+     * @throws JIException
+     */
     public void setClientName(final String clientName) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(4);
@@ -77,6 +84,11 @@ public class OPCCommon extends BaseCOMObject {
         getCOMObject().call(callObject);
     }
 
+    /**
+     * 查询可用的本地id
+     * @return
+     * @throws JIException
+     */
     public Collection<Integer> queryAvailableLocaleIDs() throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(2);

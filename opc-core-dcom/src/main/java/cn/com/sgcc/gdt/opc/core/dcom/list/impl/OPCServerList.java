@@ -1,22 +1,3 @@
-/*
- * This file is part of the OpenSCADA project
- * Copyright (C) 2006-2010 TH4 SYSTEMS GmbH (http://th4-systems.com)
- *
- * OpenSCADA is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License version 3
- * only, as published by the Free Software Foundation.
- *
- * OpenSCADA is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License version 3 for more details
- * (a copy is included in the LICENSE file that accompanied this code).
- *
- * You should have received a copy of the GNU Lesser General Public License
- * version 3 along with OpenSCADA. If not, see
- * <http://opensource.org/licenses/lgpl-3.0.html> for a copy of the LGPLv3 License.
- */
-
 package cn.com.sgcc.gdt.opc.core.dcom.list.impl;
 
 import java.net.UnknownHostException;
@@ -38,15 +19,25 @@ import org.jinterop.dcom.core.JIString;
 import rpc.core.UUID;
 
 /**
- * This class implements the IOPCServerList (aka OPCEnum) service.
- *
- * @author Jens Reimann &lt;jens.reimann@th4-systems.com&gt;
+ * OPC服务列表
+ * @author ck.yang
  */
 public class OPCServerList extends BaseCOMObject {
+    /**
+     * 获取服务列表
+     * @param listObject
+     * @throws JIException
+     */
     public OPCServerList(final IJIComObject listObject) throws JIException {
         super(listObject.queryInterface(Constants.IOPCServerList_IID));
     }
 
+    /**
+     * 根据progId获取clsId
+     * @param progId
+     * @return
+     * @throws JIException
+     */
     public JIClsid getCLSIDFromProgID(final String progId) throws JIException {
         JICallBuilder callObject = new JICallBuilder(true);
         callObject.setOpnum(2);
@@ -66,7 +57,7 @@ public class OPCServerList extends BaseCOMObject {
     }
 
     /**
-     * Return details about a serve class
+     * 返回服务器软件的信息
      *
      * @param clsId A server class
      * @throws JIException

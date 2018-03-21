@@ -63,16 +63,17 @@ public class Browser {
 
         };
         //如果心跳时间为 -1，则表示不循环查询
-        if(heartBeat < 0L){
-            threadPool.submit(runnable).get();
+        if(heartBeat <= 0L){
+            threadPool.submit(runnable);
         }else{
-            threadPool.scheduleAtFixedRate(runnable, 1,heartBeat, TimeUnit.MILLISECONDS).get();
+            threadPool.scheduleAtFixedRate(runnable, 1,heartBeat, TimeUnit.MILLISECONDS);
         }
 
     }
 
     /**
-     * 异步读取数据（查询所有节点,重复查询）
+     * 异步读取数据（查询所有节点,重复查询）<br>
+     * 该方法仅调用 {@link Browser#readAsyn(Server, Collection, ScheduledExecutorService, long, DataCallback)}
      * @param server OPC服务
      * @param threadPool 线程池
      * @param heartBeat 重复查询的心跳时间
@@ -84,7 +85,8 @@ public class Browser {
     }
 
     /**
-     * 异步读取数据（查询所有节点,只查询一次）
+     * 异步读取数据（查询所有节点,只查询一次）<br>
+     * 该方法仅调用 {@link Browser#readAsyn(Server, Collection, ScheduledExecutorService, long, DataCallback)}
      * @param server OPC服务
      * @param threadPool 线程池
      * @param dataCallback 接收到数据后的回调处理

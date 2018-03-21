@@ -19,16 +19,8 @@
 
 package cn.com.sgcc.gdt.opc.lib.da;
 
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCNAMESPACETYPE;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCSERVERSTATUS;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcNamespaceType;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcServerStatus;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCBrowseServerAddressSpace;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCGroupStateMgt;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCServer;
@@ -37,16 +29,34 @@ import cn.com.sgcc.gdt.opc.lib.common.ConnectionInformation;
 import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
 import cn.com.sgcc.gdt.opc.lib.da.browser.FlatBrowser;
 import cn.com.sgcc.gdt.opc.lib.da.browser.TreeBrowser;
+import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.UnknownGroupException;
+import lombok.Data;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.JIClsid;
 import org.jinterop.dcom.core.JIComServer;
 import org.jinterop.dcom.core.JIProgId;
 import org.jinterop.dcom.core.JISession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+/**
+ * 服务
+ * @author: ck.yang
+ */
+@Slf4j
+@Data
+@ToString
 public class Server {
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final ConnectionInformation connectionInformation;
 
@@ -68,42 +78,49 @@ public class Server {
 
     private ErrorMessageResolver errorMessageResolver;
 
-    private final Map<Integer, Group> groups = new HashMap<Integer, Group>();
+    private final Map<Integer, Group> groups = new HashMap<>();
 
-    private final List<ServerConnectionStateListener> stateListeners = new CopyOnWriteArrayList<ServerConnectionStateListener>();
+    private final List<ServerConnectionStateListener> stateListeners = new CopyOnWriteArrayList<>();
 
     private final ScheduledExecutorService scheduler;
 
-    public Server(final ConnectionInformation connectionInformation,
-                  final ScheduledExecutorService scheduler) {
-        super();
+    public Server(final ConnectionInformation connectionInformation, final ScheduledExecutorService scheduler) {
         this.connectionInformation = connectionInformation;
         this.scheduler = scheduler;
+        Thread.currentThread().setName("客户端任务-与服务器交互"+Thread.currentThread().getId());
     }
 
     /**
-     * Gets the scheduler for the server. Note that this scheduler might get
-     * blocked for a short time if the connection breaks. It should not be used
-     * for time critical operations.
-     *
+     * 从Server中获取任务调取器（即线程池），当服务发生故障的时候，调度器可能会阻塞，
+     * 所以该调度器最好不要用于关键的操作
      * @return the scheduler for the server
      */
     public ScheduledExecutorService getScheduler() {
         return this.scheduler;
     }
 
+    /**
+     * 判断连接状态: true为连接，false为断开
+     * @return
+     */
     protected synchronized boolean isConnected() {
         return this.session != null;
     }
 
-    public synchronized void connect() throws IllegalArgumentException,
-            UnknownHostException, JIException, AlreadyConnectedException {
+    /**
+     * 连接服务
+     * @throws IllegalArgumentException 非法参数异常
+     * @throws UnknownHostException 未知主机异常
+     * @throws JIException 连接服务异常
+     * @throws AlreadyConnectedException 已经连接异常
+     */
+    public synchronized void connect() throws IllegalArgumentException, UnknownHostException, JIException, AlreadyConnectedException {
         if (isConnected()) {
             throw new AlreadyConnectedException();
         }
 
         final int socketTimeout = Integer.getInteger("rpc.socketTimeout", 0);
-        logger.info(String.format("Socket timeout: %s ", socketTimeout));
+        log.info("Socket超时为：{}", socketTimeout);
 
         try {
             if (this.connectionInformation.getClsid() != null) {
@@ -125,88 +142,93 @@ public class Server {
                         JIProgId.valueOf(this.connectionInformation.getProgId()),
                         this.connectionInformation.getHost(), this.session);
             } else {
-                throw new IllegalArgumentException(
-                        "Neither clsid nor progid is valid!");
+                throw new IllegalArgumentException("请配置OPC服务器软件的 clsId(proId)！如果配置了clsId，progId可以为空");
             }
 
             this.server = new OPCServer(this.comServer.createInstance());
-            this.errorMessageResolver = new ErrorMessageResolver(
-                    this.server.getCommon(), this.defaultLocaleID);
+            this.errorMessageResolver = new ErrorMessageResolver(this.server.getCommon(), this.defaultLocaleID);
         } catch (final UnknownHostException e) {
-            logger.info("Unknown host when connecting to server", e);
+            log.info("连接未知的服务器，发生异常！", e);
             cleanup();
             throw e;
         } catch (final JIException e) {
-            logger.info("Failed to connect to server", e);
+            log.info("无法连接服务器！", e);
             cleanup();
             throw e;
         } catch (final Throwable e) {
-            logger.warn("Unknown error", e);
+            log.warn("未知错误！", e);
             cleanup();
             throw new RuntimeException(e);
         }
-
         notifyConnectionStateChange(true);
     }
 
     /**
-     * cleanup after the connection is closed
+     * 连接关闭后的清理工作
      */
     protected void cleanup() {
-        logger.info("Destroying DCOM session...");
+        log.info("销毁DCOM会话...");
         final JISession destructSession = this.session;
-        final Thread destructor = new Thread(new Runnable() {
+        ScheduledExecutorService pool = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName("客户端任务-销毁DCOM会话-"+thread.getId());
+            //thread.setDaemon(true) ;
+            return thread;
+        });
 
-            public void run() {
-                final long ts = System.currentTimeMillis();
-                try {
-                    logger.debug("Starting destruction of DCOM session");
-                    JISession.destroySession(destructSession);
-                    logger.info("Destructed DCOM session");
-                } catch (final Throwable e) {
-                    logger.warn("Failed to destruct DCOM session", e);
-                } finally {
-                    logger.info(String.format("Session destruction took %s ms",
-                            System.currentTimeMillis() - ts));
-                }
+        pool.submit(()->{
+            long ts = System.currentTimeMillis();
+            try {
+                log.debug("开始销毁DCOM会话");
+                JISession.destroySession(destructSession);
+                log.info("DCOM会话已销毁！");
+            } catch (final Throwable e) {
+                log.warn("销毁DCOM会话失败！", e);
+            } finally {
+                log.info("终止会话花费时间:{} ms", System.currentTimeMillis() - ts);
             }
-        }, "UtgardSessionDestructor");
-        destructor.setName("OPCSessionDestructor");
-        destructor.setDaemon(true);
-        destructor.start();
-        logger.info("Destroying DCOM session... forked");
+        });
 
+        log.info("强制销毁DCOM会话...");
         this.errorMessageResolver = null;
         this.session = null;
         this.comServer = null;
         this.server = null;
 
         this.groups.clear();
+        pool.shutdown();
     }
 
     /**
-     * Disconnect the connection if it is connected
+     * 断开与服务器的连接
      */
     public synchronized void disconnect() {
-        if (!isConnected()) {
-            return;
+        if(isConnected()){
+            try {
+                notifyConnectionStateChange(false);
+            } catch (final Throwable t) {
+                log.warn("切换连接状态发生异常！", t);
+            } finally {
+                cleanup();
+            }
         }
-
-        try {
-            notifyConnectionStateChange(false);
-        } catch (final Throwable t) {
-        }
-
-        cleanup();
     }
 
     /**
-     * Dispose the connection in the case of an error
+     * 发生错误时断开连接
      */
     public void dispose() {
         disconnect();
     }
 
+    /**
+     * 获取组
+     * @param groupMgt
+     * @return
+     * @throws JIException
+     * @throws IllegalArgumentException
+     * @throws UnknownHostException
+     */
     protected synchronized Group getGroup(final OPCGroupStateMgt groupMgt)
             throws JIException, IllegalArgumentException, UnknownHostException {
         final Integer serverHandle = groupMgt.getState().getServerHandle();
@@ -220,16 +242,14 @@ public class Server {
     }
 
     /**
-     * Add a new named group to the server
-     *
-     * @param name The name of the group to use. Must be unique or
-     *             <code>null</code> so that the server creates a unique name.
-     * @return The new group
-     * @throws NotConnectedException    If the server is not connected using {@link Server#connect()}
-     * @throws IllegalArgumentException
-     * @throws UnknownHostException
-     * @throws JIException
-     * @throws DuplicateGroupException  If a group with this name already exists
+     * 添加一个组到服务器
+     * @param name 组名
+     * @return
+     * @throws NotConnectedException 如果服务未连接，需要先调用{@link Server#connect()}
+     * @throws IllegalArgumentException 错误的参数异常
+     * @throws UnknownHostException 未知主机异常
+     * @throws JIException  连接异常
+     * @throws DuplicateGroupException 组名重复异常
      */
     public synchronized Group addGroup(final String name)
             throws NotConnectedException, IllegalArgumentException,
@@ -247,7 +267,7 @@ public class Server {
         } catch (final JIException e) {
             switch (e.getErrorCode()) {
                 case 0xC004000C:
-                    throw new DuplicateGroupException();
+                    throw new DuplicateGroupException("重复的Group异常");
                 default:
                     throw e;
             }
@@ -255,12 +275,10 @@ public class Server {
     }
 
     /**
-     * Add a new group and let the server generate a group name
+     * 添加一个组，组名由服务器自动生成
      * <p>
-     * Actually this method only calls {@link Server#addGroup(String)} with
-     * <code>null</code> as parameter.
-     *
-     * @return the new group
+     * 这个方法只是调用了 {@link Server#addGroup(String)}
+     * @return
      * @throws IllegalArgumentException
      * @throws UnknownHostException
      * @throws NotConnectedException
@@ -274,15 +292,14 @@ public class Server {
     }
 
     /**
-     * Find a group by its name
-     *
-     * @param name The name to look for
-     * @return The group
-     * @throws IllegalArgumentException
-     * @throws UnknownHostException
-     * @throws JIException
-     * @throws UnknownGroupException    If the group was not found
-     * @throws NotConnectedException    If the server is not connected
+     * 根据名称查找组
+     * @param name
+     * @return
+     * @throws IllegalArgumentException 参数错误异常
+     * @throws UnknownHostException 未知主机异常
+     * @throws JIException 连接异常
+     * @throws UnknownGroupException 找不到组的异常
+     * @throws NotConnectedException 无连接异常
      */
     public Group findGroup(final String name) throws IllegalArgumentException,
             UnknownHostException, JIException, UnknownGroupException,
@@ -304,51 +321,9 @@ public class Server {
         }
     }
 
-    public int getDefaultLocaleID() {
-        return this.defaultLocaleID;
-    }
-
-    public void setDefaultLocaleID(final int defaultLocaleID) {
-        this.defaultLocaleID = defaultLocaleID;
-    }
-
-    public Float getDefaultPercentDeadband() {
-        return this.defaultPercentDeadband;
-    }
-
-    public void setDefaultPercentDeadband(final Float defaultPercentDeadband) {
-        this.defaultPercentDeadband = defaultPercentDeadband;
-    }
-
-    public Integer getDefaultTimeBias() {
-        return this.defaultTimeBias;
-    }
-
-    public void setDefaultTimeBias(final Integer defaultTimeBias) {
-        this.defaultTimeBias = defaultTimeBias;
-    }
-
-    public int getDefaultUpdateRate() {
-        return this.defaultUpdateRate;
-    }
-
-    public void setDefaultUpdateRate(final int defaultUpdateRate) {
-        this.defaultUpdateRate = defaultUpdateRate;
-    }
-
-    public boolean isDefaultActive() {
-        return this.defaultActive;
-    }
-
-    public void setDefaultActive(final boolean defaultActive) {
-        this.defaultActive = defaultActive;
-    }
-
     /**
-     * Get the flat browser
-     *
-     * @return The flat browser or <code>null</code> if the functionality is not
-     * supported
+     * 获取平级的浏览器
+     * @return
      */
     public FlatBrowser getFlatBrowser() {
         final OPCBrowseServerAddressSpace browser = this.server.getBrowser();
@@ -360,10 +335,8 @@ public class Server {
     }
 
     /**
-     * Get the tree browser
-     *
-     * @return The tree browser or <code>null</code> if the functionality is not
-     * supported
+     * 获取树形结构的分级浏览器
+     * @return
      * @throws JIException
      */
     public TreeBrowser getTreeBrowser() throws JIException {
@@ -372,13 +345,18 @@ public class Server {
             return null;
         }
 
-        if (browser.queryOrganization() != OPCNAMESPACETYPE.OPC_NS_HIERARCHIAL) {
+        if (browser.queryOrganization() != OpcNamespaceType.OPC_NS_HIERARCHIAL) {
             return null;
         }
 
         return new TreeBrowser(browser);
     }
 
+    /**
+     * 获取错误信息
+     * @param errorCode
+     * @return
+     */
     public synchronized String getErrorMessage(final int errorCode) {
         if (this.errorMessageResolver == null) {
             return String.format("Unknown error (%08X)", errorCode);
@@ -393,47 +371,84 @@ public class Server {
         }
 
         // return default message
-        return String.format("Unknown error (%08X)", errorCode);
+        return String.format("未知错误：(%08X)", errorCode);
     }
 
+    /**
+     * 添加服务状态监听器
+     * @param listener
+     */
     public synchronized void addStateListener(
             final ServerConnectionStateListener listener) {
         this.stateListeners.add(listener);
         listener.connectionStateChanged(isConnected());
     }
 
+    /**
+     * 移除服务状态监听器
+     * @param listener
+     */
     public synchronized void removeStateListener(
             final ServerConnectionStateListener listener) {
         this.stateListeners.remove(listener);
     }
 
+    /**
+     * 通知连接状态改变
+     * @param connected
+     */
     protected void notifyConnectionStateChange(final boolean connected) {
-        final List<ServerConnectionStateListener> list = new ArrayList<ServerConnectionStateListener>(
-                this.stateListeners);
+        final List<ServerConnectionStateListener> list = new ArrayList<>(this.stateListeners);
         for (final ServerConnectionStateListener listener : list) {
             listener.connectionStateChanged(connected);
         }
     }
 
-    public OPCSERVERSTATUS getServerState(final int timeout) throws Throwable {
+    /**
+     * 获取服务状态：包括
+     * @param timeout
+     * @return
+     * @throws Throwable
+     */
+    public OpcServerStatus getServerState(final int timeout) throws Throwable {
         return new ServerStateOperation(this.server).getServerState(timeout);
     }
 
-    public OPCSERVERSTATUS getServerState() {
+    /**
+     * 获取服务状态
+     * @return
+     */
+    public OpcServerStatus getServerState() {
         try {
             return getServerState(2500);
         } catch (final Throwable e) {
-            logger.info("Server connection failed", e);
+            log.info("Server connection failed", e);
             dispose();
             return null;
         }
     }
 
+    /**
+     * 移除组
+     * @param group
+     * @param force
+     * @throws JIException
+     */
     public void removeGroup(final Group group, final boolean force)
             throws JIException {
         if (this.groups.containsKey(group.getServerHandle())) {
             this.server.removeGroup(group.getServerHandle(), force);
             this.groups.remove(group.getServerHandle());
         }
+    }
+
+    /**
+     * 释放资源，避免出现异常
+     * @throws Throwable
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        this.disconnect();
     }
 }

@@ -1,12 +1,13 @@
 package cn.com.sgcc.gdt.opc.client;
 
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCSERVERSTATE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcServerState;
 import cn.com.sgcc.gdt.opc.lib.common.ConnectionInformation;
 import cn.com.sgcc.gdt.opc.lib.da.AutoReconnectController;
 import cn.com.sgcc.gdt.opc.lib.da.Server;
 import cn.com.sgcc.gdt.opc.lib.da.ServerConnectionStateListener;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -57,8 +58,8 @@ public class Connecter {
         throw new NullPointerException("服务器连接失败!");
     }
 
-    public Server getServer() {
-        return server;
+    public Optional<Server> getServer() {
+       return Optional.of(this.server);
     }
 
     public void disconnect(){
@@ -72,8 +73,8 @@ public class Connecter {
     }
 
     public boolean isConnect(){
-        OPCSERVERSTATE serverState = server.getServerState().getServerState();
-       return OPCSERVERSTATE.OPC_STATUS_RUNNING.equals(serverState) ? true : false;
+        OpcServerState serverState = server.getServerState().getServerState();
+       return OpcServerState.OPC_STATUS_RUNNING.equals(serverState) ? true : false;
     }
 
     @Override

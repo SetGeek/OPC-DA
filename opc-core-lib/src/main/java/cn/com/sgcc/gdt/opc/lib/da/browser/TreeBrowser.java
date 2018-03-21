@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedList;
 
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSEDIRECTION;
-import cn.com.sgcc.gdt.opc.core.dcom.da.OPCBROWSETYPE;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseDirection;
+import cn.com.sgcc.gdt.opc.core.dcom.da.bean.OpcBrowseType;
 import cn.com.sgcc.gdt.opc.core.dcom.da.impl.OPCBrowseServerAddressSpace;
 import org.jinterop.dcom.common.JIException;
 import org.jinterop.dcom.core.JIVariant;
@@ -83,7 +83,7 @@ public class TreeBrowser extends BaseBrowser {
      * @throws JIException
      */
     protected void moveToRoot() throws JIException {
-        this._browser.changePosition(null, OPCBROWSEDIRECTION.OPC_BROWSE_TO);
+        this._browser.changePosition(null, OpcBrowseDirection.OPC_BROWSE_TO);
     }
 
     /**
@@ -97,7 +97,7 @@ public class TreeBrowser extends BaseBrowser {
 
         moveToRoot();
         for (String branchName : branchStack) {
-            this._browser.changePosition(branchName, OPCBROWSEDIRECTION.OPC_BROWSE_DOWN);
+            this._browser.changePosition(branchName, OpcBrowseDirection.OPC_BROWSE_DOWN);
         }
     }
 
@@ -196,7 +196,7 @@ public class TreeBrowser extends BaseBrowser {
     protected void browseLeaves(final Branch branch) throws IllegalArgumentException, UnknownHostException, JIException {
         branch.setLeaves(new LinkedList<Leaf>());
 
-        for (String item : browse(OPCBROWSETYPE.OPC_LEAF, this._filterCriteria, this._accessMask, this._variantType)) {
+        for (String item : browse(OpcBrowseType.OPC_LEAF, this._filterCriteria, this._accessMask, this._variantType)) {
             Leaf leaf = new Leaf(branch, item, this._browser.getItemID(item));
             branch.getLeaves().add(leaf);
         }
@@ -205,13 +205,13 @@ public class TreeBrowser extends BaseBrowser {
     protected void browseBranches(final Branch branch, final boolean leaves, final boolean descend) throws IllegalArgumentException, UnknownHostException, JIException {
         branch.setBranches(new LinkedList<Branch>());
 
-        for (String item : browse(OPCBROWSETYPE.OPC_BRANCH, this._filterCriteria, this._accessMask, this._variantType)) {
+        for (String item : browse(OpcBrowseType.OPC_BRANCH, this._filterCriteria, this._accessMask, this._variantType)) {
             Branch subBranch = new Branch(branch, item);
             // descend only if we should
             if (descend) {
-                this._browser.changePosition(item, OPCBROWSEDIRECTION.OPC_BROWSE_DOWN);
+                this._browser.changePosition(item, OpcBrowseDirection.OPC_BROWSE_DOWN);
                 browse(subBranch, leaves, true, true);
-                this._browser.changePosition(null, OPCBROWSEDIRECTION.OPC_BROWSE_UP);
+                this._browser.changePosition(null, OpcBrowseDirection.OPC_BROWSE_UP);
             }
             branch.getBranches().add(subBranch);
         }
