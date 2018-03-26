@@ -45,9 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 /**
  * 服务
@@ -123,14 +121,14 @@ public class Server {
         log.info("Socket超时为：{}", socketTimeout);
 
         try {
-            if (this.connectionInformation.getClsid() != null) {
+            if (this.connectionInformation.getClsId() != null) {
                 this.session = JISession.createSession(
                         this.connectionInformation.getDomain(),
                         this.connectionInformation.getUser(),
                         this.connectionInformation.getPassword());
                 this.session.setGlobalSocketTimeout(socketTimeout);
                 this.comServer = new JIComServer(
-                        JIClsid.valueOf(this.connectionInformation.getClsid()),
+                        JIClsid.valueOf(this.connectionInformation.getClsId()),
                         this.connectionInformation.getHost(), this.session);
             } else if (this.connectionInformation.getProgId() != null) {
                 this.session = JISession.createSession(
@@ -169,14 +167,14 @@ public class Server {
     protected void cleanup() {
         log.info("销毁DCOM会话...");
         final JISession destructSession = this.session;
-        ScheduledExecutorService pool = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable);
-            thread.setName("客户端任务-销毁DCOM会话-"+thread.getId());
+            thread.setName("客户端任务-销毁DCOM会话-" + thread.getId());
             //thread.setDaemon(true) ;
             return thread;
         });
 
-        pool.submit(()->{
+        executor.submit(()->{
             long ts = System.currentTimeMillis();
             try {
                 log.debug("开始销毁DCOM会话");
@@ -196,7 +194,6 @@ public class Server {
         this.server = null;
 
         this.groups.clear();
-        pool.shutdown();
     }
 
     /**
