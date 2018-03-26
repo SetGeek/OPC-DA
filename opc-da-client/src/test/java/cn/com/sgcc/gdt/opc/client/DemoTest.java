@@ -45,7 +45,7 @@ public class DemoTest {
         connInfo.setHost("192.168.2.254");
         connInfo.setUser("Administrator");
         connInfo.setPassword("GDTvm6.5");
-        connInfo.setClsid("7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729");//kepware
+        connInfo.setClsId("7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729");//kepware
 //        connInfo.setClsid("B57C679B-665D-4BB0-9848-C5F2C4A6A280");//ks.demo
 //        connInfo.setClsid("A879768C-7387-11D4-B0D8-009027242C59");//simulator
 

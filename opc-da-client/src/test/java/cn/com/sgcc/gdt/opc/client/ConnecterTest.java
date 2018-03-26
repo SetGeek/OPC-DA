@@ -39,7 +39,7 @@ public class ConnecterTest {
         connInfo.setPassword("GDTvm6.5");
 
         //kepware
-        connInfo.setClsid("7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729");
+        connInfo.setClsId("7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729");
         //ks.demo
 //        connInfo.setClsid("B57C679B-665D-4BB0-9848-C5F2C4A6A280");
         //simulator
