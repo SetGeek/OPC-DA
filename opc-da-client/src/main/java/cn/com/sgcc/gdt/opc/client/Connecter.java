@@ -27,6 +27,11 @@ public class Connecter {
 
     private ServerConnectionStateListener listener;
 
+    /**
+     * 构造函数
+     * @param connInfo 连接信息
+     * @param scheduledExecutorService 任务线程池
+     */
     public Connecter(ConnectionInformation connInfo, ScheduledExecutorService scheduledExecutorService) {
         //TODO 需要添加名称，以便区别不同的服务器
         name = "";
@@ -42,6 +47,11 @@ public class Connecter {
         };
     }
 
+    /**
+     * 连接
+     * @return
+     * @throws Throwable
+     */
     public Server connect() throws Throwable {
         server.connect();
         long connectTime = 10;
@@ -62,6 +72,9 @@ public class Connecter {
        return Optional.of(this.server);
     }
 
+    /**
+     * 断开连接
+     */
     public void disconnect(){
         server.removeStateListener(listener);
         if(controller!=null){
@@ -72,6 +85,10 @@ public class Connecter {
         }
     }
 
+    /**
+     * 是否连接
+     * @return
+     */
     public boolean isConnect(){
         OpcServerState serverState = server.getServerState().getServerState();
        return OpcServerState.OPC_STATUS_RUNNING.equals(serverState) ? true : false;

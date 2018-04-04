@@ -34,7 +34,8 @@ public class JiVariantUtil {
                 value.get("type").toString(),
                 value.get("value"),
                 itemState.getQuality(),
-                itemState.getTimestamp().getTime()
+                itemState.getTimestamp().getTime(),
+                DateUtil.getRecentMoment()
             );
     }
 
@@ -51,7 +52,7 @@ public class JiVariantUtil {
      * @return
      * @throws Exception
      */
-    private static Map<String, Object> getValue(JIVariant jiVariant) throws Exception{
+    public static Map<String, Object> getValue(JIVariant jiVariant) throws Exception{
         Object newValue ;
         Object oldValue = jiVariant.getObject();
         String typeName = oldValue.getClass().getTypeName();

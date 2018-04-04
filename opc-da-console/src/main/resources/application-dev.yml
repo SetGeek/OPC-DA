@@ -14,7 +14,12 @@
 #  clsid: a879768a-7387-11d4-b0d8-009027242c59
 
 opc:
-  runServerId: [1,2]
+  runServerId: [2]
+  items:
+    #前缀
+    profix:
+    #排除内容
+    exclusion: _
   servers:
     - id: 1
       host: 192.168.2.254
@@ -24,7 +29,7 @@ opc:
       progId: Knight.OPC.Server.Demo
       clsId: B57C679B-665D-4BB0-9848-C5F2C4A6A280
       timeout: 5000
-      heartbeat: 3000
+      heartbeat: 900000
       topic: opc
 
     - id: 2
@@ -35,7 +40,7 @@ opc:
       progId: Kepware.KEPServerEX.V6
       clsId: 7BC0CC8E-482C-47CA-ABDC-0FE7F9C6E729
       timeout: 5000
-      heartbeat: 3000
+      heartbeat: 900000
       topic: opc
 
     - id: 3
@@ -52,7 +57,7 @@ opc:
 # kafka生产者配置
 spring:
   kafka:
-    bootstrap-servers: 192.168.2.254:9092
+    bootstrap-servers: 192.168.2.147:9092,192.168.2.148:9092,192.168.2.149:9092
     producer:
       # key和消息体的编/解码方式
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

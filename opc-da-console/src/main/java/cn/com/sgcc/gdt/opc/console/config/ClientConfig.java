@@ -10,6 +10,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -28,6 +29,8 @@ public class ClientConfig {
     private List<ConnectInfo> servers;
     /** 开机即连接的服务 */
     private List<String> runServerId;
+
+    private Map<String, String> items;
 
     public void setServers(List<ConnectInfo> servers) {
         List<String> ids = new ArrayList<>();

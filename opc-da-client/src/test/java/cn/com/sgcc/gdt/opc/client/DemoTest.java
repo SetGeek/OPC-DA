@@ -6,6 +6,10 @@ import cn.com.sgcc.gdt.opc.lib.common.AlreadyConnectedException;
 import cn.com.sgcc.gdt.opc.lib.common.ConnectionInformation;
 import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
 import cn.com.sgcc.gdt.opc.lib.da.*;
+import cn.com.sgcc.gdt.opc.lib.da.browser.Access;
+import cn.com.sgcc.gdt.opc.lib.da.browser.Branch;
+import cn.com.sgcc.gdt.opc.lib.da.browser.Leaf;
+import cn.com.sgcc.gdt.opc.lib.da.browser.TreeBrowser;
 import cn.com.sgcc.gdt.opc.lib.da.exception.AddFailedException;
 import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
 import com.alibaba.fastjson.JSONArray;
@@ -21,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * TODO
@@ -51,7 +56,8 @@ public class DemoTest {
 
 //        connInfo.setProgId("ICONICS.SimulatorOPCDA.2");//simulator
         server = new Server(connInfo, pool);
-        autoReconnCtrl = new AutoReconnectController(server);
+        server.connect();
+//        autoReconnCtrl = new AutoReconnectController(server);
 //        autoReconnCtrl.addListener(new AutoReconnectListener() {
 //            @Override
 //            public void stateChanged(AutoReconnectState state) {
@@ -60,7 +66,7 @@ public class DemoTest {
 //                System.out.format("\r\n当前状态：%s\r\n\r\n",state.name());
 //            }
 //        });
-        autoReconnCtrl.connect();
+//        autoReconnCtrl.connect();
 
 
 //        server.connect();
@@ -105,6 +111,31 @@ public class DemoTest {
         group.remove();
     }
 
+    @Test
+    public void testSync2() throws Exception {
+        //加载节点列表
+        Collection<String> nodeIds = server.getFlatBrowser().browse();
+
+//        SyncAccess access = new SyncAccess(server, 1);
+        Group group = server.addGroup();
+        Map<String, Item> itemMap = group.addItems(nodeIds.toArray(new String[0]));
+        List<DataItem> result = new ArrayList<>();
+        for(Map.Entry<String, Item> entry: itemMap.entrySet()){
+            Item item = entry.getValue();
+            ItemState itemState = item.read(true);
+            DataItem dataItem = JiVariantUtil.parseValue(item.getId(), itemState);
+            result.add(dataItem);
+        }
+//        group.setActive(true);
+        group.clear();
+        server.removeGroup(group,false);
+        System.out.println(result);
+        TimeUnit.SECONDS.sleep(10);
+//        group.setActive(false);
+
+        group.clear();
+    }
+
     /**
      * 同步读取
      * @throws Exception
@@ -133,6 +164,18 @@ public class DemoTest {
         pool.scheduleAtFixedRate(()->{
             System.out.println("结果数据：" + data.values());
         }, 1, 3, TimeUnit.SECONDS).get();
+    }
+
+    @Test
+    public void testGetNodes() throws Exception {
+
+        Collection<String> sys = server.getFlatBrowser().browse();
+
+        List<String> collect = sys.stream().filter(value -> value.startsWith("") && !value.contains("")).collect(Collectors.toList());
+        for (String id : collect){
+                System.out.println(id);
+        }
+
     }
 
     /**

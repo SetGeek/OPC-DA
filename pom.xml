@@ -11,7 +11,8 @@
 		<module>opc-da-client</module>
 		<module>opc-core-dcom</module>
 		<module>opc-core-lib</module>
-	</modules>
+        <module>opc-da-simple-reader</module>
+    </modules>
 	<packaging>pom</packaging>
 
 	<name>opc-da</name>

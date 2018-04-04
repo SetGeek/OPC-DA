@@ -192,8 +192,8 @@ public class Server {
         this.session = null;
         this.comServer = null;
         this.server = null;
-
         this.groups.clear();
+        System.gc();
     }
 
     /**

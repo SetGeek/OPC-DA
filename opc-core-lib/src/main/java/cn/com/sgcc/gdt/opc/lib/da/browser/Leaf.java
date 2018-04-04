@@ -1,41 +1,23 @@
 package cn.com.sgcc.gdt.opc.lib.da.browser;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+@Data
 public class Leaf {
-    private Branch _parent = null;
+    private Branch parent = null;
 
-    private String _name = "";
+    private String name = "";
 
-    private String _itemId = null;
+    private String itemId = null;
 
     public Leaf(final Branch parent, final String name) {
-        this._parent = parent;
-        this._name = name;
+        this.parent = parent;
+        this.name = name;
     }
-
-    public Leaf(final Branch parent, final String name, final String itemId) {
-        this._parent = parent;
-        this._name = name;
-        this._itemId = itemId;
-    }
-
-    public String getItemId() {
-        return this._itemId;
-    }
-
-    public void setItemId(final String itemId) {
-        this._itemId = itemId;
-    }
-
-    public String getName() {
-        return this._name;
-    }
-
-    public void setName(final String name) {
-        this._name = name;
-    }
-
-    public Branch getParent() {
-        return this._parent;
-    }
-
 }

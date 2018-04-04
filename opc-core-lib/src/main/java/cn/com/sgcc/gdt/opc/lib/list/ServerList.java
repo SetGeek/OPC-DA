@@ -14,10 +14,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * 服务列表
+ */
 public class ServerList {
-    private final JISession _session;
+    private final JISession session;
 
-    private final OPCServerList _serverList;
+    private final OPCServerList serverList;
 
     /**
      * Create a new instance with an already existing session
@@ -29,9 +32,9 @@ public class ServerList {
      * @throws JIException
      */
     public ServerList(final JISession session, final String host) throws IllegalArgumentException, UnknownHostException, JIException {
-        this._session = session;
-        JIComServer comServer = new JIComServer(JIClsid.valueOf(Constants.OPCServerList_CLSID), host, this._session);
-        this._serverList = new OPCServerList(comServer.createInstance());
+        this.session = session;
+        JIComServer comServer = new JIComServer(JIClsid.valueOf(Constants.OPCServerList_CLSID), host, this.session);
+        this.serverList = new OPCServerList(comServer.createInstance());
     }
 
     /**
@@ -71,7 +74,7 @@ public class ServerList {
      * @throws JIException
      */
     public ClassDetails getDetails(final String clsId) throws JIException {
-        return this._serverList.getClassDetails(JIClsid.valueOf(clsId));
+        return this.serverList.getClassDetails(JIClsid.valueOf(clsId));
     }
 
     /**
@@ -82,7 +85,7 @@ public class ServerList {
      * @throws JIException
      */
     public String getClsIdFromProgId(final String progId) throws JIException {
-        JIClsid cls = this._serverList.getCLSIDFromProgID(progId);
+        JIClsid cls = this.serverList.getCLSIDFromProgID(progId);
         if (cls == null) {
             return null;
         }
@@ -113,7 +116,7 @@ public class ServerList {
         }
 
         // get them as UUIDs
-        Collection<UUID> resultU = this._serverList.enumClassesOfCategories(u1, u2).asCollection();
+        Collection<UUID> resultU = this.serverList.enumClassesOfCategories(u1, u2).asCollection();
 
         // and convert to easier usable strings
         Collection<String> result = new ArrayList<String>(resultU.size());

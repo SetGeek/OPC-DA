@@ -4,8 +4,7 @@ import cn.com.sgcc.gdt.opc.lib.common.ConnectionInformation;
 import cn.com.sgcc.gdt.opc.lib.da.AccessBase;
 import cn.com.sgcc.gdt.opc.lib.da.Server;
 
-class OPCTestInfo
-{
+class OPCTestInfo {
     ConnectionInformation _info = null;
 
     String _itemId = null;

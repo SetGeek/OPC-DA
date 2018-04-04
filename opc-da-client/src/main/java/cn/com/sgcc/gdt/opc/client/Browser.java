@@ -2,21 +2,25 @@ package cn.com.sgcc.gdt.opc.client;
 
 import cn.com.sgcc.gdt.opc.client.bean.DataItem;
 import cn.com.sgcc.gdt.opc.client.bean.ServerInfo;
+import cn.com.sgcc.gdt.opc.client.utils.DateUtil;
 import cn.com.sgcc.gdt.opc.client.utils.JiVariantUtil;
 import cn.com.sgcc.gdt.opc.core.dcom.list.ClassDetails;
+import cn.com.sgcc.gdt.opc.lib.common.NotConnectedException;
 import cn.com.sgcc.gdt.opc.lib.da.Group;
 import cn.com.sgcc.gdt.opc.lib.da.Item;
 import cn.com.sgcc.gdt.opc.lib.da.ItemState;
 import cn.com.sgcc.gdt.opc.lib.da.Server;
+import cn.com.sgcc.gdt.opc.lib.da.exception.AddFailedException;
+import cn.com.sgcc.gdt.opc.lib.da.exception.DuplicateGroupException;
 import cn.com.sgcc.gdt.opc.lib.list.Categories;
 import cn.com.sgcc.gdt.opc.lib.list.Category;
 import cn.com.sgcc.gdt.opc.lib.list.ServerList;
 import lombok.extern.slf4j.Slf4j;
+import org.jinterop.dcom.common.JIException;
+import org.jinterop.dcom.core.JIVariant;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.net.UnknownHostException;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -30,10 +34,35 @@ public class Browser {
 
     private Browser(){}
 
-    public void readSync(Server server, Collection<String> itemIds, DataCallback dataCallback){
+    public static List<DataItem> readSync(Server server, Collection<String> itemIds){
         //TODO 同步读取数据
+        try {
+            Group group = server.addGroup();
+            Map<String, Item> itemMap = group.addItems(itemIds.toArray(new String[0]));
+            List<DataItem> result = new ArrayList<>();
+            for(Map.Entry<String, Item> entry: itemMap.entrySet()){
+                Item item = entry.getValue();
+                ItemState itemState = item.read(false);
+                DataItem dataItem = JiVariantUtil.parseValue(item.getId(), itemState);
+                result.add(dataItem);
+            }
+//            group.clear();
+//            server.removeGroup(group,false);
+            return result;
+        } catch (Exception e) {
+            log.error("同步读取失败！", e);
+            return null;
+        }
     }
 
+    public static List<DataItem> readSync(Server server){
+        try {
+            return readSync(server, browseItemIds(server));
+        } catch (Throwable throwable) {
+            log.error("同步读取失败！", throwable);
+            return null;
+        }
+    }
     /**
      * 异步读取数据（可指定节点）
      * @param server OPC服务
@@ -125,8 +154,10 @@ public class Browser {
         ServerList serverList = new ServerList(host, userName, password, domain);
         Collection<ClassDetails> classDetails = serverList.listServersWithDetails(new Category[]{Categories.OPCDAServer20}, new Category[]{});
         List<ServerInfo> serverInfos = new ArrayList<>();
+        System.out.println("在目标主机上发现如下OPC服务器：");
         for(ClassDetails details: classDetails){
             serverInfos.add(new ServerInfo(details.getProgId(), details.getClsId(), details.getDescription()));
+            System.out.format("\tprogId: '%s' \r\n\tclsId：'%s' \r\n\tdescription:'%s' \r\n\r\n", details.getProgId(), details.getClsId(), details.getClsId());
         }
         return serverInfos;
     }

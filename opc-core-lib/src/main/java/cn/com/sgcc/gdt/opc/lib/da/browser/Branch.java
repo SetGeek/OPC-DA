@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 public class Branch {
-    private Branch _parent = null;
+    private Branch parent = null;
 
-    private String _name = null;
+    private String name = null;
 
-    private Collection<Branch> _branches = new LinkedList<Branch>();
+    private Collection<Branch> branches = new LinkedList<Branch>();
 
-    private Collection<Leaf> _leaves = new LinkedList<Leaf>();
+    private Collection<Leaf> leaves = new LinkedList<Leaf>();
 
     /**
      * Create a branch to the virtual root folder
@@ -28,8 +28,8 @@ public class Branch {
      */
     public Branch(final Branch parent, final String name) {
         super();
-        this._name = name;
-        this._parent = parent;
+        this.name = name;
+        this.parent = parent;
     }
 
     /**
@@ -40,11 +40,11 @@ public class Branch {
      * @return The list of branches
      */
     public Collection<Branch> getBranches() {
-        return this._branches;
+        return this.branches;
     }
 
     public void setBranches(final Collection<Branch> branches) {
-        this._branches = branches;
+        this.branches = branches;
     }
 
     /**
@@ -55,23 +55,23 @@ public class Branch {
      * @return The list of leaves
      */
     public Collection<Leaf> getLeaves() {
-        return this._leaves;
+        return this.leaves;
     }
 
     public void setLeaves(final Collection<Leaf> leaves) {
-        this._leaves = leaves;
+        this.leaves = leaves;
     }
 
     public String getName() {
-        return this._name;
+        return this.name;
     }
 
     public void setName(final String name) {
-        this._name = name;
+        this.name = name;
     }
 
     public Branch getParent() {
-        return this._parent;
+        return this.parent;
     }
 
     /**
